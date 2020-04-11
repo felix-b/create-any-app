@@ -98,10 +98,10 @@ namespace LLang.Abstractions
                 .FirstOrDefault(m => m.State.Id == stateId);
         }
 
-        public IGrammarRefStateMatch<TIn, TOut>? FindChoiceByStateId(string stateId)
+        public IChoiceRefStateMatch<TIn, TOut>? FindChoiceByStateId(string stateId)
         {
             return MatchedStates
-                .OfType<IGrammarRefStateMatch<TIn, TOut>>()
+                .OfType<IChoiceRefStateMatch<TIn, TOut>>()
                 .FirstOrDefault(m => m.State.Id == stateId);
         }
 

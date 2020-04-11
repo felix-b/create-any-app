@@ -20,11 +20,11 @@ namespace LLang.Abstractions
         ITraceContext Input<TIn>(IInputContext<TIn> input);
         ITraceContext State<TIn>(IState<TIn> state);
         ITraceContext Rule<TIn, TOut>(Rule<TIn, TOut> rule);
-        ITraceContext Grammar<TIn, TOut>(Grammar<TIn, TOut> grammar);
+        ITraceContext Choice<TIn, TOut>(Choice<TIn, TOut> choice);
         ITraceContext Product<TOut>(OptionalProduct<TOut> product);
         ITraceContext Product(object? product);
-        ITraceContext GrammarRefStateMatch<TIn, TOut>(IGrammarRefStateMatch<TIn, TOut> match);
-        ITraceContext GrammarMatch<TIn, TOut>(GrammarMatch<TIn, TOut> match);
+        ITraceContext ChoiceRefStateMatch<TIn, TOut>(IChoiceRefStateMatch<TIn, TOut> match);
+        ITraceContext ChoiceMatch<TIn, TOut>(ChoiceMatch<TIn, TOut> match);
         ITraceContext RuleRefStateMatch<TIn, TOut>(IRuleRefStateMatch<TIn, TOut> match);
         ITraceContext RuleMatch<TIn, TOut>(RuleMatch<TIn, TOut> match);
         ITraceContext StateMatch<TIn>(IStateMatch<TIn> match);

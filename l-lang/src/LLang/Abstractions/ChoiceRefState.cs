@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace LLang.Abstractions
 {
-    public class GrammarRefState<TIn, TOut> : IState<TIn>
+    public class ChoiceRefState<TIn, TOut> : IState<TIn>
     {
-        public GrammarRefState(string id, Grammar<TIn, TOut> grammarRef, Quantifier? quantifier)
+        public ChoiceRefState(string id, Choice<TIn, TOut> grammarRef, Quantifier? quantifier)
         {
             Id = id;
             GrammarRef = grammarRef;
@@ -24,16 +24,16 @@ namespace LLang.Abstractions
         }
 
         public string Id { get; }
-        public Grammar<TIn, TOut> GrammarRef { get; }
+        public Choice<TIn, TOut> GrammarRef { get; }
         public Quantifier Quantifier { get; }
 
-        private class StateMatch : IMatch<TIn>, IStateMatch<TIn>, IGrammarRefStateMatch<TIn, TOut> 
+        private class StateMatch : IMatch<TIn>, IStateMatch<TIn>, IChoiceRefStateMatch<TIn, TOut> 
         {
-            private readonly List<GrammarMatch<TIn, TOut>> _grammarMatches;
+            private readonly List<ChoiceMatch<TIn, TOut>> _grammarMatches;
 
             public StateMatch(
-                GrammarRefState<TIn, TOut> state, 
-                Grammar<TIn, TOut> grammarRef,  
+                ChoiceRefState<TIn, TOut> state, 
+                Choice<TIn, TOut> grammarRef,  
                 IInputContext<TIn> context,
                 bool initiallyMatched)
             {
@@ -43,12 +43,12 @@ namespace LLang.Abstractions
                 GrammarRef = grammarRef;
                 Input = context.Input;
 
-                _grammarMatches = new List<GrammarMatch<TIn, TOut>>();
+                _grammarMatches = new List<ChoiceMatch<TIn, TOut>>();
 
                 if (initiallyMatched)
                 {
                     _grammarMatches.Add(
-                        grammarRef.TryMatchStart(GetReaderFromContext(context)) ?? throw new Exception("Grammar cannot be matched")
+                        grammarRef.TryMatchStart(GetReaderFromContext(context)) ?? throw new Exception("Choice cannot be matched")
                     );
                 }
             }
@@ -116,8 +116,8 @@ namespace LLang.Abstractions
             }
 
             public IState<TIn> State { get; }
-            public Grammar<TIn, TOut> GrammarRef { get; }
-            public IReadOnlyList<GrammarMatch<TIn, TOut>> GrammarMatches => _grammarMatches;
+            public Choice<TIn, TOut> GrammarRef { get; }
+            public IReadOnlyList<ChoiceMatch<TIn, TOut>> GrammarMatches => _grammarMatches;
             public int TimesMatched { get; private set; }
             public Marker<TIn> StartMarker { get; }
             public Marker<TIn> EndMarker { get; private set; }

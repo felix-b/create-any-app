@@ -595,7 +595,7 @@ namespace LLang.Demos.Json
 
             public static ObjectSyntax FindInSubRules(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
-                var choiceMatch = match.MatchedStates.SingleOrDefault() as IGrammarRefStateMatch<Token, SyntaxNode>
+                var choiceMatch = match.MatchedStates.SingleOrDefault() as IChoiceRefStateMatch<Token, SyntaxNode>
                     ?? throw new Exception("ObjectSyntax: cannot find in sub-rules (1)");
 
                 return choiceMatch.FindSingleRuleProductOrThrow<ObjectSyntax>();
@@ -638,7 +638,7 @@ namespace LLang.Demos.Json
 
             public static ArraySyntax FindInSubRules(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
-                var choiceMatch = match.MatchedStates.SingleOrDefault() as IGrammarRefStateMatch<Token, SyntaxNode>
+                var choiceMatch = match.MatchedStates.SingleOrDefault() as IChoiceRefStateMatch<Token, SyntaxNode>
                     ?? throw new Exception("ArraySyntax: cannot find in sub-rules (1)");
 
                 return choiceMatch.FindSingleRuleProductOrThrow<ArraySyntax>();
@@ -716,7 +716,7 @@ namespace LLang.Demos.Json
             public static ValueSyntax ConstructAnyValue(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var span = SourceSpan.FromTokens(match, context);
-                var choiceMatch = match.MatchedStates.SingleOrDefault() as IGrammarRefStateMatch<Token, SyntaxNode>
+                var choiceMatch = match.MatchedStates.SingleOrDefault() as IChoiceRefStateMatch<Token, SyntaxNode>
                     ?? throw new Exception("ValueSyntax: cannot construct (1)");
 
                 var literalSyntax = choiceMatch.FindSingleRuleProductOrThrow<SyntaxNode>();

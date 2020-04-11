@@ -2,32 +2,32 @@ using System.Collections.Generic;
 
 namespace LLang.Abstractions
 {
-    public class GrammarMatch<TIn, TOut> : IMatch<TIn>
+    public class ChoiceMatch<TIn, TOut> : IMatch<TIn>
     {
         private readonly IInputReader<TIn> _reader;
         private readonly List<RuleMatch<TIn, TOut>?> _matchingRules;
         private readonly List<RuleMatch<TIn, TOut>> _matchedRules;
 
-        private GrammarMatch(
-            Grammar<TIn, TOut> grammar, 
+        private ChoiceMatch(
+            Choice<TIn, TOut> choice, 
             IInputReader<TIn> reader,
             List<RuleMatch<TIn, TOut>?> matchingRules)
         {
             _reader = reader;
             _matchingRules = matchingRules;
-            _matchedRules = new List<RuleMatch<TIn, TOut>>(capacity: grammar.Rules.Count);
+            _matchedRules = new List<RuleMatch<TIn, TOut>>(capacity: choice.Rules.Count);
 
-            Grammar = grammar;
+            Choice = choice;
             StartMarker = reader.Mark();
             EndMarker = StartMarker;
 
-            reader.Trace.Debug("GrammarMatch.ctor", x => x.Input(reader).GrammarMatch(this));
+            reader.Trace.Debug("GrammarMatch.ctor", x => x.Input(reader).ChoiceMatch(this));
         }
 
 
         public bool Next(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("GrammarMatch.Next", x => x.GrammarMatch(this).Input(context));
+            using var traceSpan = context.Trace.Span("GrammarMatch.Next", x => x.ChoiceMatch(this).Input(context));
 
             var anyRuleMatched = false;
 
@@ -79,7 +79,7 @@ namespace LLang.Abstractions
             return MatchedRule != null;
         }
 
-        public Grammar<TIn, TOut> Grammar { get; }
+        public Choice<TIn, TOut> Choice { get; }
         public Marker<TIn> StartMarker { get; }
         public Marker<TIn> EndMarker { get; private set; }
         public RuleMatch<TIn, TOut>? MatchedRule { get; private set; }
@@ -116,27 +116,27 @@ namespace LLang.Abstractions
             return bestRule;
         }
 
-        public static GrammarMatch<TIn, TOut>? TryMatchStart(
-            Grammar<TIn, TOut> grammar, 
+        public static ChoiceMatch<TIn, TOut>? TryMatchStart(
+            Choice<TIn, TOut> choice, 
             IInputReader<TIn> reader)
         {
             List<RuleMatch<TIn, TOut>?>? matchingRules = null;
 
-            for (int i = 0 ; i < grammar.Rules.Count ; i++)
+            for (int i = 0 ; i < choice.Rules.Count ; i++)
             {
-                var match = grammar.Rules[i].TryMatchStart(reader);
+                var match = choice.Rules[i].TryMatchStart(reader);
                 if (match != null)
                 {
                     if (matchingRules == null)
                     {
-                        matchingRules = new List<RuleMatch<TIn, TOut>?>(capacity: grammar.Rules.Count);
+                        matchingRules = new List<RuleMatch<TIn, TOut>?>(capacity: choice.Rules.Count);
                     }
                     matchingRules.Add(match);
                 }
             }
 
             return matchingRules != null 
-                ? new GrammarMatch<TIn, TOut>(grammar, reader, matchingRules)
+                ? new ChoiceMatch<TIn, TOut>(choice, reader, matchingRules)
                 : null;
         }
     }

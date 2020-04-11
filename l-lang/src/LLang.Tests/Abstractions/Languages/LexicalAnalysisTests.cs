@@ -448,9 +448,9 @@ namespace LLang.Tests.Abstractions.Languages
                         "ruleA", 
                         new IState<char>[] {
                             new CharState('L'),
-                            new GrammarRefState<char, Token>(
+                            new ChoiceRefState<char, Token>(
                                 "refG", 
-                                new Grammar<char, Token>(
+                                new Choice<char, Token>(
                                     new Rule<char, Token>[] {
                                         new Rule<char, Token>(
                                             "ruleX", 
@@ -518,9 +518,9 @@ namespace LLang.Tests.Abstractions.Languages
                         "ruleA", 
                         new IState<char>[] {
                             new CharState('L'),
-                            new GrammarRefState<char, Token>(
+                            new ChoiceRefState<char, Token>(
                                 "refG", 
-                                new Grammar<char, Token>(
+                                new Choice<char, Token>(
                                     new Rule<char, Token>[] {
                                         new Rule<char, Token>(
                                             "ruleX", 

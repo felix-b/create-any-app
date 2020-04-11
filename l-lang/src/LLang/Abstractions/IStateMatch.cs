@@ -16,10 +16,10 @@ namespace LLang.Abstractions
         IReadOnlyList<RuleMatch<TIn, TOut>> RuleMatches { get; }
     }
 
-    public interface IGrammarRefStateMatch<TIn, TOut> : IStateMatch<TIn>
+    public interface IChoiceRefStateMatch<TIn, TOut> : IStateMatch<TIn>
     {
         TProduct FindSingleRuleProductOrThrow<TProduct>() where TProduct : class, TOut;
-        Grammar<TIn, TOut> GrammarRef { get; }
-        IReadOnlyList<GrammarMatch<TIn, TOut>> GrammarMatches { get; }
+        Choice<TIn, TOut> GrammarRef { get; }
+        IReadOnlyList<ChoiceMatch<TIn, TOut>> GrammarMatches { get; }
     }
 }

@@ -138,7 +138,7 @@ namespace LLang.Utilities
                 return this;
             }
 
-            public ITraceContext GrammarRefStateMatch<TIn, TOut>(IGrammarRefStateMatch<TIn, TOut> match)
+            public ITraceContext ChoiceRefStateMatch<TIn, TOut>(IChoiceRefStateMatch<TIn, TOut> match)
             {
                 _text.Append(
                     $" [gref/match]" + 
@@ -151,11 +151,11 @@ namespace LLang.Utilities
                 return this;
             }
 
-            public ITraceContext GrammarMatch<TIn, TOut>(GrammarMatch<TIn, TOut> match)
+            public ITraceContext ChoiceMatch<TIn, TOut>(ChoiceMatch<TIn, TOut> match)
             {
                 _text.Append(
                     $" [g/match]" + 
-                    $" grid={match.Grammar.Id}" +
+                    $" grid={match.Choice.Id}" +
                     $" #m/ing={match.MatchingRules.Count}" +
                     $" #m/ed={match.MatchedRules.Count}" +
                     $" mrk={match.StartMarker.Value}..{match.EndMarker.Value}");
@@ -202,9 +202,9 @@ namespace LLang.Utilities
                 return this;
             }
 
-            public ITraceContext Grammar<TIn, TOut>(Grammar<TIn, TOut> grammar)
+            public ITraceContext Choice<TIn, TOut>(Choice<TIn, TOut> choice)
             {
-                _text.Append($" [grammar] id={grammar.Id}");
+                _text.Append($" [choice] id={choice.Id}");
                 return this;
             }
 

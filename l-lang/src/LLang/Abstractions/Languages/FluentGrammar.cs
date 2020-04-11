@@ -1,321 +1,287 @@
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
 
-// namespace LLang.Abstractions.Languages
-// {
-//     public static class FluentLanguage
-//     {
-//         public static FluentGrammar<char, Token> NewLexicon() => new FluentGrammar<char, Token>();
-//         public static FluentGrammar<Token, SyntaxNode> NewSyntax() => new FluentGrammar<Token, SyntaxNode>();
-//     }
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-//     public class FluentGrammar<TIn, TOut>
-//     {
-//         private readonly List<FluentRule<TIn, TOut>> _rules = new List<FluentRule<TIn, TOut>>();
+namespace LLang.Abstractions.Languages
+{
 
-//         public FluentGrammar<TIn, TOut> Rule(
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build, 
-//             Func<RuleMatch<TIn, TOut>, TOut> product)
-//         {
-//             var rule = new FluentRule<TIn, TOut>(id, new DelegatingProductFactory<TIn, TOut>(product));
-//             _rules.Add(rule);
-//             build(rule);
-//             return this;
-//         }
+    public static class GrammarExtensions
+    {
+        public static FluentGrammar<TIn, TOut> Build<TIn, TOut>(this Choice<TIn, TOut> choice)
+        {
+            return new FluentGrammar<TIn, TOut>(choice);
+        }
+    }
 
-//         public FluentGrammar<TIn, TOut> Rule(
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build, 
-//             Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> product)
-//         {
-//             var rule = new FluentRule<TIn, TOut>(id, new DelegatingProductFactory<TIn, TOut>(product));
-//             _rules.Add(rule);
-//             build(rule);
-//             return this;
-//         }
+    public class FluentGrammar<TIn, TOut>
+    {
+        public FluentGrammar(Choice<TIn, TOut> choice)
+        {
+            ThisChoice = choice;
+        }
 
-//         public FluentGrammar<TIn, TOut> Rule(
-//             out FluentRuleRef<TIn, TOut> ruleRef,
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build, 
-//             Func<RuleMatch<TIn, TOut>, TOut> product)
-//         {
-//             var rule = new FluentRule<TIn, TOut>(id, new DelegatingProductFactory<TIn, TOut>(product));
-//             _rules.Add(rule);
-//             build(rule);
-//             ruleRef = new FluentRuleRef<TIn, TOut>(() => rule);
-//             return this;
-//         }
+        public FluentGrammar<TIn, TOut> Rule(
+            out Rule<TIn, TOut> rule,
+            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Action<FluentRule<TIn, TOut>>? build = null)
+        {
+            return Rule(id: string.Empty, out rule, createProduct, build);
+        }
 
-//         public FluentGrammar<TIn, TOut> Rule(
-//             out FluentRuleRef<TIn, TOut> ruleRef,
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build, 
-//             Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> product)
-//         {
-//             var rule = new FluentRule<TIn, TOut>(id, new DelegatingProductFactory<TIn, TOut>(product));
-//             _rules.Add(rule);
-//             build(rule);
-//             ruleRef = new FluentRuleRef<TIn, TOut>(() => rule);
-//             return this;
-//         }
+        public FluentGrammar<TIn, TOut> Rule(
+            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Action<FluentRule<TIn, TOut>>? build = null)
+        {
+            return Rule(id: string.Empty, out _, createProduct, build);
+        }
 
-//         public FluentGrammar<TIn, TOut> Rule<TProduct>(
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build)
-//             where TProduct : TOut, IProductOfFactory
-//         {
-//             throw new NotImplementedException();
-//         }
+        public FluentGrammar<TIn, TOut> Rule(
+            string id, 
+            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Action<FluentRule<TIn, TOut>>? build = null)
+        {
+            return Rule(id, out _, createProduct, build);
+        }
 
-//         public FluentGrammar<TIn, TOut> Rule<TProduct>(
-//             out FluentRuleRef<TIn, TOut> ruleRef,
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build)
-//             where TProduct : TOut, IProductOfFactory
-//         {
-//             throw new NotImplementedException();
-//         }
+        public FluentGrammar<TIn, TOut> Rule(
+            string id, 
+            out Rule<TIn, TOut> rule,
+            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Action<FluentRule<TIn, TOut>>? build = null)
+        {
+            rule = new Rule<TIn, TOut>(id, createProduct);
+            build?.Invoke(rule.Build());
+            ThisChoice.Rules.Add(rule);
+            return this;
+        }
 
-//         public FluentGrammar<TIn, TOut> Rule(FluentRuleRef<TIn, TOut> ruleRef, Quantifier? quantifier = null)
-//         {
-//             var refRuleId = ruleRef.GetFluent().Id;
-//             return Rule(
-//                 $"r#{refRuleId}", 
-//                 r => r.Group(
-//                     $"rg#{refRuleId}", 
-//                     ruleRef, 
-//                     quantifier
-//                 ), 
-//                 (m, x) => m.Product.Value
-//             );
-//         }
+        public FluentGrammar<TIn, TOut> Rule(Rule<TIn, TOut> rule)
+        {
+            ThisChoice.Rules.Add(rule);
+            return this;
+        }
 
-//         public Grammar<TIn, TOut> GetGrammar()
-//         {
-//             return new Grammar<TIn, TOut>(_rules.Select(r => (Rule<TIn, TOut>)r));
-//         }
-//     }
+        public Choice<TIn, TOut> ThisChoice { get; }
+    }
 
-//     public class FluentRule<TIn, TOut>
-//     {
-//         private readonly string _id;
-//         private readonly IProductFactory<TIn, TOut> _productFactory;
-//         private readonly List<IState<TIn>> _states = new List<IState<TIn>>();
+    public static class RuleExtensions
+    {
+        public static FluentRule<TIn, TOut> Build<TIn, TOut>(this Rule<TIn, TOut> rule)
+        {
+            return new FluentRule<TIn, TOut>(rule);
+        }
+    }
 
-//         public FluentRule(string id, DelegatingProductFactory<TIn, TOut> productFactory)
-//         {
-//             _id = id;
-//             _productFactory = productFactory;
-//         }
+    public class FluentRule<TIn, TOut>
+    {
+        public FluentRule(Rule<TIn, TOut> rule)
+        {
+            ThisRule = rule;
+        }
 
-//         public FluentRule<TIn, TOut> Group(
-//             string id, 
-//             Func<FluentRule<TIn, TOut>, FluentRule<TIn, TOut>> build, 
-//             Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct,
-//             Quantifier? quantifier = null)
-//         {
-//             var nestedRule = new FluentRule<TIn, TOut>(id, groupProduct);
-//             build(nestedRule);
-//             _states.Add(new RuleRefState<TIn, TOut>(id, nestedRule, quantifier));
-//             return this;
-//         }
+        public FluentRule<TIn, TOut> Group(
+            string id,
+            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct, 
+            Action<FluentRule<TIn, TOut>> build,
+            Quantifier? quantifier = null)
+        {
+            var subRule = new Rule<TIn, TOut>(id, groupProduct);
+            build(subRule.Build());
+            ThisRule.States.Add(new RuleRefState<TIn, TOut>(id, subRule, quantifier));
+            return this;
+        }
 
-//         public FluentRule<TIn, TOut> Group(string id, FluentRuleRef<TIn, TOut> ruleRef, Quantifier? quantifier = null)
-//         {
-//             _states.Add(new RuleRefState<TIn, TOut>(id, ruleRef.GetRule(), quantifier));
-//             return this;
-//         }
+        public FluentRule<TIn, TOut> Group(
+            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct, 
+            Action<FluentRule<TIn, TOut>> build,
+            Quantifier? quantifier = null)
+        {
+            return Group(string.Empty, groupProduct, build, quantifier);
+        }
 
-//         public FluentRule<TIn, TOut> Choice(string id, Func<FluentGrammar<TIn, TOut>, FluentGrammar<TIn, TOut>> build, Quantifier? quantifier = null)
-//         {
-//             var nestedGrammar = new FluentGrammar<TIn, TOut>();
-//             build(nestedGrammar);
-//             _states.Add(new GrammarRefState<TIn, TOut>(id, nestedGrammar.GetGrammar(), quantifier));
-//             return this;
-//         }
+        public FluentRule<TIn, TOut> Rule(
+            Rule<TIn, TOut> rule,
+            Quantifier? quantifier = null)
+        {
+            return Rule(rule.Id, rule, quantifier);
+        }
 
-//         public FluentRule<TIn, TOut> RawState(IState<TIn> state)
-//         {
-//             _states.Add(state);
-//             return this;
-//         }
+        public FluentRule<TIn, TOut> Rule(
+            string id, 
+            Rule<TIn, TOut> rule,
+            Quantifier? quantifier = null)
+        {
+            ThisRule.States.Add(new RuleRefState<TIn, TOut>(id, rule, quantifier));
+            return this;
+        }
 
-//         public string Id => _id;
+        public FluentRule<TIn, TOut> Choice(
+            Action<FluentGrammar<TIn, TOut>> build,
+            Quantifier? quantifier = null)
+        {
+            return Choice(id: string.Empty, build, quantifier);
+        }
 
-//         private Rule<TIn, TOut> GetRule()
-//         {
-//             return new Rule<TIn, TOut>(_id, _states, _productFactory);
-//         }
+        public FluentRule<TIn, TOut> Choice(
+            string id,
+            Action<FluentGrammar<TIn, TOut>> build,
+            Quantifier? quantifier = null)
+        {
+            var subGrammar = new Choice<TIn, TOut>();
+            build(subGrammar.Build());
+            ThisRule.States.Add(new ChoiceRefState<TIn, TOut>(id, subGrammar, quantifier));
+            return this;
+        }
+        public Rule<TIn, TOut> ThisRule { get; } 
+    }
 
-//         public static implicit operator Rule<TIn, TOut>(FluentRule<TIn, TOut> fluent)
-//         {
-//             return fluent.GetRule();
-//         }
-//     }
+    public static class FluentRuleLexicalExtensions
+    {
+        public static FluentRule<char, Token> AnyChar(this FluentRule<char, Token> rule, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(new AnyCharState(quantifier));
+            return rule;
+        }
 
-//     public static class LexiconFluentRuleExtensions
-//     {
-//         public static FluentRule<char, Token> AnyChar(this FluentRule<char, Token> rule, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(new AnyCharState(quantifier));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> Char(this FluentRule<char, Token> rule, char c, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(new CharState($"c={c}", c, negating: false, quantifier));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> Char(this FluentRule<char, Token> rule, char c, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(new CharState($"c={c}", c, negating: false, quantifier));
-//             return rule;
-//         }
+        // public static Rule<char, Token> Char(this Rule<char, Token> rule, Func<char, bool> predicate, Quantifier? quantifier = null)
+        // {
+        //     rule.States.Add(new SimpleState<char>("cF", context => predicate(context.Input), quantifier));
+        //     return rule;
+        // }
 
-//         // public static FluentRule<char, Token> Char(this FluentRule<char, Token> rule, Func<char, bool> predicate, Quantifier? quantifier = null)
-//         // {
-//         //     rule.RawState(new SimpleState<char>("cF", context => predicate(context.Input), quantifier));
-//         //     return rule;
-//         // }
+        public static FluentRule<char, Token> NotChar(this FluentRule<char, Token> rule, char c, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(new CharState($"c!={c}", c, negating: true, quantifier));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> NotChar(this FluentRule<char, Token> rule, char c, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(new CharState($"c!={c}", c, negating: true, quantifier));
-//             return rule;
-//         }
+        // public static Rule<char, Token> NotChar(this Rule<char, Token> rule, Func<char, bool> predicate, Quantifier? quantifier = null)
+        // {
+        //     rule.States.Add(new SimpleState<char>("cF", context => !predicate(context.Input), quantifier));
+        //     return rule;
+        // }
 
-//         // public static FluentRule<char, Token> NotChar(this FluentRule<char, Token> rule, Func<char, bool> predicate, Quantifier? quantifier = null)
-//         // {
-//         //     rule.RawState(new SimpleState<char>("cF", context => !predicate(context.Input), quantifier));
-//         //     return rule;
-//         // }
+        public static FluentRule<char, Token> Class(this FluentRule<char, Token> rule, CharClass @class, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(new CharClassState($"cls={@class}", @class, negating: false, quantifier));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> Class(this FluentRule<char, Token> rule, CharClass @class, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(new CharClassState($"cls={@class}", @class, negating: false, quantifier));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> NotClass(this FluentRule<char, Token> rule, CharClass @class, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(new CharClassState($"cls!={@class}", @class, negating: true, quantifier));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> NotClass(this FluentRule<char, Token> rule, CharClass @class, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(new CharClassState($"cls!={@class}", @class, negating: true, quantifier));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, ValueTuple<char, char>[] ranges, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(CharRangeState.Create("crng", negating: false, quantifier, ranges));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, ValueTuple<char, char>[] ranges, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(CharRangeState.Create("crng", negating: false, quantifier, ranges));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, ValueTuple<char, char> range, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(CharRangeState.Create("crng", negating: false, quantifier, new[] { range }));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, ValueTuple<char, char> range, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(CharRangeState.Create("crng", negating: false, quantifier, new[] { range }));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(CharRangeState.Create("crng", negating: false, quantifier, GetRangesFromString(chars)));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(CharRangeState.Create("crng", negating: false, quantifier, GetRangesFromString(chars)));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, ValueTuple<char, char>[] ranges, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(CharRangeState.Create("!crng", negating: true, quantifier, ranges));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, ValueTuple<char, char>[] ranges, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(CharRangeState.Create("!crng", negating: true, quantifier, ranges));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, ValueTuple<char, char> range, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(CharRangeState.Create("!crng", negating: true, quantifier, new[] { range }));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, ValueTuple<char, char> range, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(CharRangeState.Create("!crng", negating: true, quantifier, new[] { range }));
-//             return rule;
-//         }
+        public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
+        {
+            rule.ThisRule.States.Add(CharRangeState.Create("!crng", negating: true, quantifier, GetRangesFromString(chars)));
+            return rule;
+        }
 
-//         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
-//         {
-//             rule.RawState(CharRangeState.Create("!crng", negating: true, quantifier, GetRangesFromString(chars)));
-//             return rule;
-//         }
-
-//         public static FluentRule<char, Token> String(this FluentRule<char, Token> rule, string s, Quantifier? quantifier = null)
-//         {
-//             rule.Group(
-//                 id: s, 
-//                 build: r => {
-//                     for (int i = 0 ; i < s.Length ; i++)
-//                     {
-//                         var c = s[i];
-//                         r.Char(c);
-//                     }
-//                     return r;                
-//                 }, 
-//                 groupProduct: (m, x) => new Token(s, m, x), 
-//                 quantifier);
+        public static FluentRule<char, Token> String(this FluentRule<char, Token> rule, string s, Quantifier? quantifier = null)
+        {
+            rule.Group(
+                id: s, 
+                groupProduct: (m, x) => new Token(s, m, x),
+                build: r => {
+                    for (int i = 0 ; i < s.Length ; i++)
+                    {
+                        var c = s[i];
+                        r.Char(c);
+                    }
+                }, 
+                quantifier);
             
-//             return rule;
-//         }
+            return rule;
+        }
 
-//         private static ValueTuple<char, char>[] GetRangesFromString(string s)
-//         {
-//             var sortedChars = s.Distinct().OrderBy(c => c).ToArray();
+        private static ValueTuple<char, char>[] GetRangesFromString(string s)
+        {
+            var sortedChars = s.Distinct().OrderBy(c => c).ToArray();
 
-//             ValueTuple<char, char>[] ranges = sortedChars.Length > 0 && AreConsecutiveChars(sortedChars) 
-//                 ? new ValueTuple<char, char>[] { (sortedChars[0], sortedChars[^1]) }
-//                 : s.Select(c => new ValueTuple<char, char>(c, c)).ToArray();
+            ValueTuple<char, char>[] ranges = sortedChars.Length > 0 && AreConsecutiveChars(sortedChars) 
+                ? new ValueTuple<char, char>[] { (sortedChars[0], sortedChars[^1]) }
+                : s.Select(c => new ValueTuple<char, char>(c, c)).ToArray();
 
-//             return ranges;
+            return ranges;
 
-//             static bool AreConsecutiveChars(char[] chars)
-//             {
-//                 for (int i = 1 ; i < chars.Length ; i++)
-//                 {
-//                     if (chars[i] != chars[i-1] + 1)
-//                     {
-//                         return false;
-//                     }
-//                 }
-//                 return true;
-//             }
-//         }
-//     }
+            static bool AreConsecutiveChars(char[] chars)
+            {
+                for (int i = 1 ; i < chars.Length ; i++)
+                {
+                    if (chars[i] != chars[i-1] + 1)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+    }
+    public static class FluentRuleSyntaxExtensions
+    {
+        public static FluentRule<Token, SyntaxNode> Token<TToken>(this FluentRule<Token, SyntaxNode> rule, Quantifier? quantifier = null)
+            where TToken : Token
+        {
+            return Token<TToken>(rule, stateId: typeof(TToken).Name, quantifier);
+        }
 
-//     public static class SyntaxFluentRuleExtensions
-//     {
-//         public static FluentRule<Token, SyntaxNode> Token<TToken>(this FluentRule<Token, SyntaxNode> rule, string id, Quantifier? quantifier = null)
-//             where TToken : Token
-//         {
-//             rule.RawState(new TokenState(id, typeof(TToken), negating: false, quantifier));
-//             return rule;
-//         }
+        public static FluentRule<Token, SyntaxNode> Token<TToken>(this FluentRule<Token, SyntaxNode> rule, string stateId, Quantifier? quantifier = null)
+            where TToken : Token
+        {
+            rule.ThisRule.States.Add(new TokenState(stateId, typeof(TToken), negating: false, quantifier));
+            return rule;
+        }
 
-//         public static FluentRule<Token, SyntaxNode> NotToken<TToken>(this FluentRule<Token, SyntaxNode> rule, string id, Quantifier? quantifier = null)
-//             where TToken : Token
-//         {
-//             rule.RawState(new TokenState(id, typeof(TToken), negating: true, quantifier));
-//             return rule;
-//         }
-//     }
+        public static FluentRule<Token, SyntaxNode> NotToken<TToken>(this FluentRule<Token, SyntaxNode> rule, Quantifier? quantifier = null)
+            where TToken : Token
+        {
+            return NotToken<TToken>(rule, stateId: typeof(TToken).Name, quantifier);
+        }
 
-//     public class FluentRuleRef<TIn, TOut>
-//     {
-//         public readonly Func<FluentRule<TIn, TOut>> GetFluent;
-//         public FluentRuleRef(Func<FluentRule<TIn, TOut>> getFluent)
-//         {
-//             GetFluent = getFluent;
-//         }
-//         public Rule<TIn, TOut> GetRule()
-//         {
-//             // invokes implicit convertion operator
-//             return GetFluent();
-//         }
-//     }
-
-//     public enum CharClass
-//     {
-//         Control,
-//         Whitespace,
-//         Digit,
-//         Letter,
-//         Lower,
-//         Upper
-//     }
-// }
+        public static FluentRule<Token, SyntaxNode> NotToken<TToken>(this FluentRule<Token, SyntaxNode> rule, string stateId, Quantifier? quantifier = null)
+            where TToken : Token
+        {
+            rule.ThisRule.States.Add(new TokenState(stateId, typeof(TToken), negating: true, quantifier));
+            return rule;
+        }
+    }
+}

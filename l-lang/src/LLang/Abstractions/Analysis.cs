@@ -7,7 +7,7 @@
         {
             using var traceSpan = input.Trace.Span(
                 $"Analysis.RunOnce<{typeof(TIn).Name},{typeof(TOut).Name}>", 
-                x => x.Grammar(grammar).Input(input));
+                x => x.Choice(grammar).Input(input));
 
             if (!input.HasInput && !input.ReadNextInput())
             {
