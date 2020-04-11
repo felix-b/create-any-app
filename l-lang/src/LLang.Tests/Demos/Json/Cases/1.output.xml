@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<JsonSemantics.ValueNode xmlns:i="http://www.w3.org/2001/XMLSchema-instance" i:type="JsonSemantics.ObjectValueNode" xmlns="http://schemas.datacontract.org/2004/07/LLang.Demos.Json">
+  <Value>
+    <Properties>
+      <JsonSemantics.PropertyNode>
+        <Name>"arr"</Name>
+        <Value i:type="JsonSemantics.ArrayValueNode">
+          <Value>
+            <Items>
+              <JsonSemantics.ValueNode i:type="JsonSemantics.StringValueNode">
+                <Value>"Hello"</Value>
+              </JsonSemantics.ValueNode>
+              <JsonSemantics.ValueNode i:type="JsonSemantics.StringValueNode">
+                <Value>"World"</Value>
+              </JsonSemantics.ValueNode>
+            </Items>
+          </Value>
+        </Value>
+      </JsonSemantics.PropertyNode>
+      <JsonSemantics.PropertyNode>
+        <Name>"yesOrNo"</Name>
+        <Value i:type="JsonSemantics.BooleanValueNode">
+          <Value>true</Value>
+        </Value>
+      </JsonSemantics.PropertyNode>
+      <JsonSemantics.PropertyNode>
+        <Name>"num"</Name>
+        <Value i:type="JsonSemantics.NumberValueNode">
+          <Value>12345</Value>
+        </Value>
+      </JsonSemantics.PropertyNode>
+      <JsonSemantics.PropertyNode>
+        <Name>"coord"</Name>
+        <Value i:type="JsonSemantics.ObjectValueNode">
+          <Value>
+            <Properties>
+              <JsonSemantics.PropertyNode>
+                <Name>"x"</Name>
+                <Value i:type="JsonSemantics.NumberValueNode">
+                  <Value>111</Value>
+                </Value>
+              </JsonSemantics.PropertyNode>
+              <JsonSemantics.PropertyNode>
+                <Name>"y"</Name>
+                <Value i:type="JsonSemantics.NumberValueNode">
+                  <Value>222</Value>
+                </Value>
+              </JsonSemantics.PropertyNode>
+            </Properties>
+          </Value>
+        </Value>
+      </JsonSemantics.PropertyNode>
+    </Properties>
+  </Value>
+</JsonSemantics.ValueNode>

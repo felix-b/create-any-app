@@ -1,12 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LLang\LLang.csproj" />
+    <ProjectReference Include="../LLang/LLang.csproj" />
+    <ProjectReference Include="../LLang.Demos/LLang.Demos.csproj" />
   </ItemGroup>
 </Project>

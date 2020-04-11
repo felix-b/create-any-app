@@ -5,8 +5,9 @@ using NUnit.Framework;
 using FluentAssertions;
 using System.IO;
 using System.Linq;
-using static LLang.Tests.Demos.Json.JsonGrammar;
 using LLang.Utilities;
+using LLang.Demos.Json;
+using static LLang.Demos.Json.JsonGrammar;
 
 namespace LLang.Tests.Demos.Json
 {

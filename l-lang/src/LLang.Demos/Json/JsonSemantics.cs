@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using LLang.Abstractions.Languages;
-using static LLang.Tests.Demos.Json.JsonGrammar;
+using static LLang.Demos.Json.JsonGrammar;
 
-namespace LLang.Tests.Demos.Json
+namespace LLang.Demos.Json
 {
-    public class JsonSemanticModel
+    public class JsonSemantics
     {
         private static readonly Dictionary<Type, Func<SyntaxNode, ISemanticNode>> _semanticFactoryBySyntaxType = 
             new Dictionary<Type, Func<SyntaxNode, ISemanticNode>>() {
@@ -29,10 +30,17 @@ namespace LLang.Tests.Demos.Json
         {
         }
 
+        [DataContract]
+        [KnownType(typeof(StringValueNode))]
+        [KnownType(typeof(NumberValueNode))]
+        [KnownType(typeof(BooleanValueNode))]
+        [KnownType(typeof(ObjectValueNode))]
+        [KnownType(typeof(ArrayValueNode))]
         public abstract class ValueNode : ISemanticNode
         {
         }
 
+        [DataContract]
         public class StringValueNode : ValueNode
         {
             public StringValueNode(string value)
@@ -40,9 +48,11 @@ namespace LLang.Tests.Demos.Json
                 Value = value;
             }
 
-            public string Value { get; }
+            [DataMember]
+            public string Value { get; set;}
         }
 
+        [DataContract]
         public class NumberValueNode : ValueNode
         {
             public NumberValueNode(decimal value)
@@ -50,9 +60,11 @@ namespace LLang.Tests.Demos.Json
                 Value = value;
             }
 
+            [DataMember]
             public decimal Value { get; set; }
         }
 
+        [DataContract]
         public class BooleanValueNode : ValueNode
         {
             public BooleanValueNode(bool value)
@@ -60,9 +72,11 @@ namespace LLang.Tests.Demos.Json
                 Value = value;
             }
 
+            [DataMember]
             public bool Value { get; set; }
         }
 
+        [DataContract]
         public class ObjectValueNode : ValueNode
         {
             public ObjectValueNode(ObjectNode value)
@@ -70,9 +84,11 @@ namespace LLang.Tests.Demos.Json
                 Value = value;
             }
 
+            [DataMember]
             public ObjectNode Value { get; set; }
         }
 
+        [DataContract]
         public class ArrayValueNode : ValueNode
         {
             public ArrayValueNode(ArrayNode value)
@@ -80,9 +96,11 @@ namespace LLang.Tests.Demos.Json
                 Value = value;
             }
 
+            [DataMember]
             public ArrayNode Value { get; set; }
         }
 
+        [DataContract]
         public class ObjectNode : ISemanticNode
         {
             public ObjectNode(IEnumerable<PropertyNode> properties)
@@ -90,9 +108,11 @@ namespace LLang.Tests.Demos.Json
                 Properties = properties.ToList();
             }
 
-            public List<PropertyNode> Properties { get; }
+            [DataMember]
+            public List<PropertyNode> Properties { get; set; }
         }
 
+        [DataContract]
         public class ArrayNode : ISemanticNode
         {
             public ArrayNode(IEnumerable<ValueNode> items)
@@ -100,9 +120,11 @@ namespace LLang.Tests.Demos.Json
                 Items = items.ToList();
             }
 
-            public List<ValueNode> Items { get; }
+            [DataMember]
+            public List<ValueNode> Items { get; set; }
         }
 
+        [DataContract]
         public class PropertyNode : ISemanticNode
         {
             public PropertyNode(string name, ValueNode value)
@@ -111,8 +133,10 @@ namespace LLang.Tests.Demos.Json
                 Value = value;
             }
 
-            public string Name { get; }
-            public ValueNode Value { get; }
+            [DataMember]
+            public string Name { get; set; }
+            [DataMember]
+            public ValueNode Value { get; set; }
         }   
 
         private static Func<SyntaxNode, ISemanticNode> FuncOfSyntax<TSyntax>(Func<TSyntax, ISemanticNode> func)

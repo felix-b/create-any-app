@@ -6,6 +6,7 @@ using FluentAssertions;
 using System.IO;
 using System.Linq;
 using LLang.Utilities;
+using LLang.Demos.Json;
 
 namespace LLang.Tests.Demos.Json
 {

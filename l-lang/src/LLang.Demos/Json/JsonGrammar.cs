@@ -4,7 +4,7 @@ using System.Linq;
 using LLang.Abstractions;
 using LLang.Abstractions.Languages;
 
-namespace LLang.Tests.Demos.Json
+namespace LLang.Demos.Json
 {
     public static class JsonGrammar
     {

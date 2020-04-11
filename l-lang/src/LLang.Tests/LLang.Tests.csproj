@@ -15,7 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LLang\LLang.csproj" />
+    <ProjectReference Include="../LLang/LLang.csproj" />
+    <ProjectReference Include="../LLang.Demos/LLang.Demos.csproj" />
   </ItemGroup>
 
 </Project>

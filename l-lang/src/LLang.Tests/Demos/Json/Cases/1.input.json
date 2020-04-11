@@ -1,0 +1,6 @@
+{
+    "arr": ["Hello", "World"],
+    "yesOrNo": true,
+    "num": 12345,
+    "coord":  { "x":111, "y": 222 }
+}
