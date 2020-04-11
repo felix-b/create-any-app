@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using LLang.Abstractions;
 using LLang.Abstractions.Languages;
 
@@ -31,9 +32,9 @@ namespace LLang.Demos.Json
                 .Rule(StringToken.Create, r => r
                     .Char('"')
                     .Choice("value", g => g
-                        .Rule(Token.CreateToken, r => r.NotCharRange("\"\\", Quantifier.Any))
-                        .Rule("esc-char", Token.CreateToken, r => r.Char('\\').AnyChar())
-                        .Rule("esc-utf16", Token.CreateToken, r => r.String("\\u").CharRange(('0','9'), Quantifier.Exactly(4))),
+                        .Rule("non-esc-text", NonEscapedTextToken.Create, r => r.NotCharRange("\"\\", Quantifier.Any))
+                        .Rule("esc-char", EscapeSequenceToken.CreateFromChar, r => r.Char('\\').AnyChar())
+                        .Rule("esc-utf16", EscapeSequenceToken.CreateFromHex, r => r.String("\\u").CharRange(('0','9'), Quantifier.Exactly(4))),
                         Quantifier.Any
                     )
                     .Char('"'))
@@ -359,27 +360,100 @@ namespace LLang.Demos.Json
 
         public class StringToken : Token, IScalarToken, IProductOfFactory<StringToken.Factory>
         {
-            public StringToken(IMatch<char> match, IInputContext<char> context)
+            public StringToken(IEnumerable<IStringContentToken> contentTokens, RuleMatch<char, Token> match, IInputContext<char> context)
                 : base("STR", match, context)
             {
-                Value = Span.GetText();
+                ContentTokens = contentTokens.ToArray();
+                Value = string.Join(string.Empty, ContentTokens.Select(t => t.UnescapedText));
             }
 
+            public IReadOnlyList<IStringContentToken> ContentTokens { get; }
             public string Value { get; }
-
             public object ClrValue => Value;
+
 
             public class Factory : IProductFactory<char, Token>
             {
                 public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
                 {
-                    return new StringToken(match, context);
+                    return StringToken.Create(match, context);
                 }
             }
 
-            public static StringToken Create(IMatch<char> match, IInputContext<char> context)
+            public static StringToken Create(RuleMatch<char, Token> match, IInputContext<char> context)
             {
-                return new StringToken(match, context);
+                var choice = match.FindChoiceByStateId("value") 
+                    ?? throw new Exception("StringToken: cannot construct (1)");
+                
+                var tokens = choice!                    
+                    .GrammarMatches
+                    .Select(m => m.MatchedRule?.Product.Value)
+                    .OfType<IStringContentToken>()
+                    ?? throw new Exception("StringToken: cannot construct (2)");
+
+                return new StringToken(tokens, match, context);
+            }
+        }
+
+        public interface IStringContentToken
+        {
+            string UnescapedText { get; }
+            Token AsToken { get; }
+        }
+
+        public class NonEscapedTextToken : Token, IStringContentToken
+        {
+            public NonEscapedTextToken(IMatch<char> match, IInputContext<char> context) 
+                : base(name: "non-esc-text", match, context)
+            {
+            }
+
+            public string UnescapedText => Span.GetText();
+            public Token AsToken => this;
+
+            public static NonEscapedTextToken Create(RuleMatch<char, Token> match, IInputContext<char> context)
+            {
+                return new NonEscapedTextToken(match, context);
+            }
+        }
+
+        public class EscapeSequenceToken : Token, IStringContentToken
+        {
+            private static readonly string _escapableCharIndex = "bfnrt";
+            private static readonly string _escapedCharIndex = "\b\f\n\r\t";
+
+            public EscapeSequenceToken(char escapedChar, IMatch<char> match, IInputContext<char> context)
+                : base(name: "escape", match, context)
+            {
+                EscapedChar = escapedChar;
+            }
+
+            public char EscapedChar { get; }
+            public string UnescapedText => new string(EscapedChar, 1);
+            public Token AsToken => this;
+
+            public static EscapeSequenceToken CreateFromChar(RuleMatch<char, Token> match, IInputContext<char> context)
+            {
+                var text = context.GetSlice(match.StartMarker, match.EndMarker).ToString();
+                if (text.Length == 2 && text[0] == '\\')
+                {
+                    var index = _escapableCharIndex.IndexOf(text[1]);
+                    var escapedChar = index >= 0 ? _escapedCharIndex[index] : text[1];
+                    return new EscapeSequenceToken(escapedChar, match, context);
+                }
+    
+                throw new Exception("EscapedCharToken: cannot construct (1)");
+            }
+
+            public static EscapeSequenceToken CreateFromHex(RuleMatch<char, Token> match, IInputContext<char> context)
+            {
+                var text = context.GetSlice(match.StartMarker, match.EndMarker).ToString();
+                if (text.Length == 6 && int.TryParse(text[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var charCode))
+                {
+                    return new EscapeSequenceToken(escapedChar: (char)charCode, match, context);
+                }
+                    
+                throw new Exception("EscapedCharToken: cannot construct (1)");
             }
         }
 

@@ -21,7 +21,7 @@ namespace LLang.Tests.Demos.Json
 
             syntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                 scalarValueSyntax.ScalarToken.Should().BeOfType<StringToken>();
-                scalarValueSyntax.ScalarToken.ClrValue.Should().Be(@"""some-text""");
+                scalarValueSyntax.ScalarToken.ClrValue.Should().Be(@"some-text");
             });
         }
 
@@ -84,7 +84,7 @@ namespace LLang.Tests.Demos.Json
             arraySyntax.Items.Count.Should().Be(3);
             arraySyntax.Items.Should().AllBeOfType<ScalarValueSyntax>();
             CollectionAssert.AreEquivalent(
-                new object[] { 123, true, "\"abc\"" }, //TODO: expand StringToken parts
+                new object[] { 123, true, "abc" }, 
                 arraySyntax.Items.OfType<ScalarValueSyntax>().Select(scalar => scalar.ScalarToken.ClrValue)
             );
         }
@@ -111,7 +111,7 @@ namespace LLang.Tests.Demos.Json
             objectSyntax.Should().NotBeNull();
             objectSyntax.Properties.Count.Should().Be(1);
 
-            objectSyntax.Properties[0].Name.Should().Be("\"num\""); //TODO: expand StringToken parts
+            objectSyntax.Properties[0].Name.Should().Be("num"); 
             objectSyntax.Properties[0].ValueSyntax.Should().BeOfType<ScalarValueSyntax>()
                .Which.ScalarToken.ClrValue.Should().Be(123.0m);
         }
@@ -126,13 +126,13 @@ namespace LLang.Tests.Demos.Json
             objectSyntax.Should().NotBeNull();
             objectSyntax.Properties.Count.Should().Be(2);
 
-            objectSyntax.Properties[0].Name.Should().Be("\"num\""); //TODO: expand StringToken parts
+            objectSyntax.Properties[0].Name.Should().Be("num");
             objectSyntax.Properties[0].ValueSyntax.Should().BeOfType<ScalarValueSyntax>()
                .Which.ScalarToken.ClrValue.Should().Be(123.0m);
 
-            objectSyntax.Properties[1].Name.Should().Be("\"str\""); //TODO: expand StringToken parts
+            objectSyntax.Properties[1].Name.Should().Be("str");
             objectSyntax.Properties[1].ValueSyntax.Should().BeOfType<ScalarValueSyntax>()
-               .Which.ScalarToken.ClrValue.Should().Be("\"abc\""); //TODO: expand StringToken parts
+               .Which.ScalarToken.ClrValue.Should().Be("abc");
         }
 
         [Test]
@@ -145,15 +145,15 @@ namespace LLang.Tests.Demos.Json
             objectSyntax.Should().NotBeNull();
             objectSyntax.Properties.Count.Should().Be(3);
 
-            objectSyntax.Properties[0].Name.Should().Be("\"num\""); //TODO: expand StringToken parts
+            objectSyntax.Properties[0].Name.Should().Be("num"); 
             objectSyntax.Properties[0].ValueSyntax.Should().BeOfType<ScalarValueSyntax>()
                .Which.ScalarToken.ClrValue.Should().Be(123.0m);
 
-            objectSyntax.Properties[1].Name.Should().Be("\"str\""); //TODO: expand StringToken parts
+            objectSyntax.Properties[1].Name.Should().Be("str");
             objectSyntax.Properties[1].ValueSyntax.Should().BeOfType<ScalarValueSyntax>()
-               .Which.ScalarToken.ClrValue.Should().Be("\"abc\""); //TODO: expand StringToken parts
+               .Which.ScalarToken.ClrValue.Should().Be("abc"); 
 
-            objectSyntax.Properties[2].Name.Should().Be("\"yesOrNo\""); //TODO: expand StringToken parts
+            objectSyntax.Properties[2].Name.Should().Be("yesOrNo"); 
             objectSyntax.Properties[2].ValueSyntax.Should().BeOfType<ScalarValueSyntax>()
                .Which.ScalarToken.ClrValue.Should().Be(true); 
         }
@@ -253,7 +253,7 @@ namespace LLang.Tests.Demos.Json
                 objectSyntax.Properties.Count.Should().Be(1);
 
                 objectSyntax.Properties[0].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p1\"");
+                    propertySyntax.Name.Should().Be("p1");
                     propertySyntax.ValueSyntax.DrillAs<ObjectValueSyntax>().ObjectSyntax.Drill(nestedObjectSyntax => {
                         nestedObjectSyntax.Properties.Should().BeEmpty();
                     });
@@ -272,7 +272,7 @@ namespace LLang.Tests.Demos.Json
                 objectSyntax.Properties.Count.Should().Be(3);
 
                 objectSyntax.Properties[0].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p1\"");
+                    propertySyntax.Name.Should().Be("p1");
                     propertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                         scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                             numberToken.Value.Should().Be(11.0m)
@@ -281,12 +281,12 @@ namespace LLang.Tests.Demos.Json
                 });
 
                 objectSyntax.Properties[1].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p2\"");
+                    propertySyntax.Name.Should().Be("p2");
                     propertySyntax.ValueSyntax.DrillAs<ObjectValueSyntax>().ObjectSyntax.Drill(nestedObjectSyntax => {
                         nestedObjectSyntax.Properties.Count.Should().Be(2);
 
                         nestedObjectSyntax.Properties[0].Drill(nestedPropertySyntax => {
-                            nestedPropertySyntax.Name.Should().Be("\"p3\"");
+                            nestedPropertySyntax.Name.Should().Be("p3");
                             nestedPropertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                                 scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                                     numberToken.Value.Should().Be(33.0m)
@@ -295,7 +295,7 @@ namespace LLang.Tests.Demos.Json
                         });
 
                         nestedObjectSyntax.Properties[1].Drill(nestedPropertySyntax => {
-                            nestedPropertySyntax.Name.Should().Be("\"p4\"");
+                            nestedPropertySyntax.Name.Should().Be("p4");
                             nestedPropertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                                 scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                                     numberToken.Value.Should().Be(44.0m)
@@ -306,7 +306,7 @@ namespace LLang.Tests.Demos.Json
                 });
 
                 objectSyntax.Properties[2].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p5\"");
+                    propertySyntax.Name.Should().Be("p5");
                     propertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                         scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                             numberToken.Value.Should().Be(55.0m)
@@ -327,11 +327,11 @@ namespace LLang.Tests.Demos.Json
                 objectSyntax.Properties.Count.Should().Be(2);
 
                 objectSyntax.Properties[0].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p1\"");
+                    propertySyntax.Name.Should().Be("p1");
                     propertySyntax.ValueSyntax.DrillAs<ObjectValueSyntax>().ObjectSyntax.Drill(nestedObjectSyntax => {
                         nestedObjectSyntax.Properties.Count.Should().Be(1);
                         nestedObjectSyntax.Properties[0].Drill(nestedPropertySyntax => {
-                            nestedPropertySyntax.Name.Should().Be("\"p2\"");
+                            nestedPropertySyntax.Name.Should().Be("p2");
                             nestedPropertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                                 scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                                     numberToken.Value.Should().Be(22.0m)
@@ -342,7 +342,7 @@ namespace LLang.Tests.Demos.Json
                 });
 
                 objectSyntax.Properties[1].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p3\"");
+                    propertySyntax.Name.Should().Be("p3");
                     propertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                         scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                             numberToken.Value.Should().Be(33.0m)
@@ -363,7 +363,7 @@ namespace LLang.Tests.Demos.Json
                 objectSyntax.Properties.Count.Should().Be(2);
 
                 objectSyntax.Properties[0].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p1\"");
+                    propertySyntax.Name.Should().Be("p1");
                     propertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                         scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                             numberToken.Value.Should().Be(11.0m)
@@ -372,11 +372,11 @@ namespace LLang.Tests.Demos.Json
                 });
 
                 objectSyntax.Properties[1].Drill(propertySyntax => {
-                    propertySyntax.Name.Should().Be("\"p2\"");
+                    propertySyntax.Name.Should().Be("p2");
                     propertySyntax.ValueSyntax.DrillAs<ObjectValueSyntax>().ObjectSyntax.Drill(nestedObjectSyntax => {
                         nestedObjectSyntax.Properties.Count.Should().Be(1);
                         nestedObjectSyntax.Properties[0].Drill(nestedPropertySyntax => {
-                            nestedPropertySyntax.Name.Should().Be("\"p3\"");
+                            nestedPropertySyntax.Name.Should().Be("p3");
                             nestedPropertySyntax.ValueSyntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                                 scalarValueSyntax.ScalarToken.DrillAs<NumberToken>(numberToken => 
                                     numberToken.Value.Should().Be(33.0m)

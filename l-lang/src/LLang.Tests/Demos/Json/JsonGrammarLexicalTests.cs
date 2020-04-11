@@ -84,29 +84,38 @@ namespace LLang.Tests.Demos.Json
         public void EscapedStrings()
         {
             var lexer = new LexicalAnalysis();
-            var source = CreateSourceReader(@"""before\t\""after\""\r\n"":""A,\u0066,C,D""");
+            var source = CreateSourceReader(@"""before\t\""after\""\r\n"":""A,\u0042,C,D""");
             
             var tokens = lexer.RunToEnd(JsonGrammar.CreateLexicon(), source).ToArray();
-
             CollectionAssert.AreEqual(
                 new[] { "STR", "COLON", "STR" },
                 tokens.Select(t => t.Name)
             );
 
-            var stringValues = tokens.OfType<JsonGrammar.StringToken>().Select(t => t.Value).ToArray();
-            //TODO: expand escape sequences
-            CollectionAssert.AreEqual(
-                new[] { 
-                    "\"before\\t\\\"after\\\"\\r\\n\"",  
-                    "\"A,\\u0066,C,D\""
-                },
-                stringValues
-            );
+            tokens[0].DrillAs<JsonGrammar.StringToken>(token => {
+                token.Value.Should().Be("before\t\"after\"\r\n");
+                token.ContentTokens.Count.Should().Be(7);
+                token.ContentTokens[0].Should().BeOfType<JsonGrammar.NonEscapedTextToken>().Which.UnescapedText.Should().Be("before");
+                token.ContentTokens[1].Should().BeOfType<JsonGrammar.EscapeSequenceToken>().Which.UnescapedText.Should().Be("\t");
+                token.ContentTokens[2].Should().BeOfType<JsonGrammar.EscapeSequenceToken>().Which.UnescapedText.Should().Be("\"");
+                token.ContentTokens[3].Should().BeOfType<JsonGrammar.NonEscapedTextToken>().Which.UnescapedText.Should().Be("after");
+                token.ContentTokens[4].Should().BeOfType<JsonGrammar.EscapeSequenceToken>().Which.UnescapedText.Should().Be("\"");
+                token.ContentTokens[5].Should().BeOfType<JsonGrammar.EscapeSequenceToken>().Which.UnescapedText.Should().Be("\r");
+                token.ContentTokens[6].Should().BeOfType<JsonGrammar.EscapeSequenceToken>().Which.UnescapedText.Should().Be("\n");
+            });
+
+            tokens[2].DrillAs<JsonGrammar.StringToken>(token => {
+                token.Value.Should().Be("A,B,C,D");
+                token.ContentTokens.Count.Should().Be(3);
+                token.ContentTokens[0].Should().BeOfType<JsonGrammar.NonEscapedTextToken>().Which.UnescapedText.Should().Be("A,");
+                token.ContentTokens[1].Should().BeOfType<JsonGrammar.EscapeSequenceToken>().Which.UnescapedText.Should().Be("B");
+                token.ContentTokens[2].Should().BeOfType<JsonGrammar.NonEscapedTextToken>().Which.UnescapedText.Should().Be(",C,D");
+            });
         }
 
         private SourceFileReader CreateSourceReader(string sourceText)
         {
-            return new SourceFileReader(new ConsoleTrace(), "test.src", new StringReader(sourceText));
+            return new SourceFileReader(new NoopTrace(), "test.src", new StringReader(sourceText));
         }
     }
 }
