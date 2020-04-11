@@ -44,7 +44,7 @@ namespace LLang.Cli
                 }
 
                 var semantics = JsonSemantics.CreateFromSyntax(syntax);
-                var serializer = new DataContractSerializer(typeof(JsonSemantics.ValueNode));
+                var serializer = new DataContractSerializer(typeof(JsonSemantics.JsonNode));
                 serializer.WriteObject(output, semantics);
                 output.Flush();
             }

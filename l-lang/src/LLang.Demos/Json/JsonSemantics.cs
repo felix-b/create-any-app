@@ -9,8 +9,8 @@ namespace LLang.Demos.Json
 {
     public class JsonSemantics
     {
-        private static readonly Dictionary<Type, Func<SyntaxNode, ISemanticNode>> _semanticFactoryBySyntaxType = 
-            new Dictionary<Type, Func<SyntaxNode, ISemanticNode>>() {
+        private static readonly Dictionary<Type, Func<SyntaxNode, object?>> _semanticFactoryBySyntaxType = 
+            new Dictionary<Type, Func<SyntaxNode, object?>>() {
                 [typeof(ValueSyntax)] = FuncOfSyntax<ValueSyntax>(NodeFactory.CreateAnyValue),
                 [typeof(ScalarValueSyntax)] = FuncOfSyntax<ScalarValueSyntax>(NodeFactory.CreateScalarValue),
                 [typeof(ObjectValueSyntax)] = FuncOfSyntax<ObjectValueSyntax>(NodeFactory.CreateObjectValue),
@@ -19,89 +19,24 @@ namespace LLang.Demos.Json
                 [typeof(ArraySyntax)] = FuncOfSyntax<ArraySyntax>(NodeFactory.CreateArray),
             };  
 
-        public static ISemanticNode CreateFromSyntax(SyntaxNode syntax)
+        public static object? CreateFromSyntax(SyntaxNode syntax)
         {
             var factory = _semanticFactoryBySyntaxType[syntax.GetType()];
             var semanticNode = factory(syntax);
             return semanticNode;
         }
 
-        public interface ISemanticNode
+        [DataContract]
+        [KnownType(typeof(ObjectNode))]
+        [KnownType(typeof(ArrayNode))]
+        public class JsonNode
         {
         }
 
         [DataContract]
-        [KnownType(typeof(StringValueNode))]
-        [KnownType(typeof(NumberValueNode))]
-        [KnownType(typeof(BooleanValueNode))]
-        [KnownType(typeof(ObjectValueNode))]
-        [KnownType(typeof(ArrayValueNode))]
-        public abstract class ValueNode : ISemanticNode
-        {
-        }
-
-        [DataContract]
-        public class StringValueNode : ValueNode
-        {
-            public StringValueNode(string value)
-            {
-                Value = value;
-            }
-
-            [DataMember]
-            public string Value { get; set;}
-        }
-
-        [DataContract]
-        public class NumberValueNode : ValueNode
-        {
-            public NumberValueNode(decimal value)
-            {
-                Value = value;
-            }
-
-            [DataMember]
-            public decimal Value { get; set; }
-        }
-
-        [DataContract]
-        public class BooleanValueNode : ValueNode
-        {
-            public BooleanValueNode(bool value)
-            {
-                Value = value;
-            }
-
-            [DataMember]
-            public bool Value { get; set; }
-        }
-
-        [DataContract]
-        public class ObjectValueNode : ValueNode
-        {
-            public ObjectValueNode(ObjectNode value)
-            {
-                Value = value;
-            }
-
-            [DataMember]
-            public ObjectNode Value { get; set; }
-        }
-
-        [DataContract]
-        public class ArrayValueNode : ValueNode
-        {
-            public ArrayValueNode(ArrayNode value)
-            {
-                Value = value;
-            }
-
-            [DataMember]
-            public ArrayNode Value { get; set; }
-        }
-
-        [DataContract]
-        public class ObjectNode : ISemanticNode
+        [KnownType(typeof(ObjectNode))]
+        [KnownType(typeof(ArrayNode))]
+        public class ObjectNode : JsonNode
         {
             public ObjectNode(IEnumerable<PropertyNode> properties)
             {
@@ -113,21 +48,25 @@ namespace LLang.Demos.Json
         }
 
         [DataContract]
-        public class ArrayNode : ISemanticNode
+        [KnownType(typeof(ObjectNode))]
+        [KnownType(typeof(ArrayNode))]
+        public class ArrayNode : JsonNode
         {
-            public ArrayNode(IEnumerable<ValueNode> items)
+            public ArrayNode(IEnumerable<object?> items)
             {
                 Items = items.ToList();
             }
 
             [DataMember]
-            public List<ValueNode> Items { get; set; }
+            public List<object?> Items { get; set; }
         }
 
         [DataContract]
-        public class PropertyNode : ISemanticNode
+        [KnownType(typeof(ObjectNode))]
+        [KnownType(typeof(ArrayNode))]
+        public class PropertyNode
         {
-            public PropertyNode(string name, ValueNode value)
+            public PropertyNode(string name, object? value)
             {
                 Name = name;
                 Value = value;
@@ -136,10 +75,10 @@ namespace LLang.Demos.Json
             [DataMember]
             public string Name { get; set; }
             [DataMember]
-            public ValueNode Value { get; set; }
+            public object? Value { get; set; }
         }   
 
-        private static Func<SyntaxNode, ISemanticNode> FuncOfSyntax<TSyntax>(Func<TSyntax, ISemanticNode> func)
+        private static Func<SyntaxNode, object?> FuncOfSyntax<TSyntax>(Func<TSyntax, object?> func)
             where TSyntax : SyntaxNode
         {
             return syntax => func((TSyntax)syntax);
@@ -147,7 +86,7 @@ namespace LLang.Demos.Json
 
         private static class NodeFactory
         {
-            public static ValueNode CreateAnyValue(ValueSyntax syntax) 
+            public static object? CreateAnyValue(ValueSyntax syntax) 
             {
                 return syntax switch 
                 {
@@ -158,24 +97,19 @@ namespace LLang.Demos.Json
                 };
             }
 
-            public static ValueNode CreateScalarValue(ScalarValueSyntax syntax) 
+            public static object? CreateScalarValue(ScalarValueSyntax syntax) 
             {
-                return syntax.ScalarToken.ClrValue switch {
-                    string s => new StringValueNode(s),
-                    decimal n => new NumberValueNode(n),
-                    bool b => new BooleanValueNode(b),
-                    _ => throw new Exception("Unrecognized scalar value token")
-                };
+                return syntax.ScalarToken.ClrValue;
             }
 
-            public static ObjectValueNode CreateObjectValue(ObjectValueSyntax syntax) 
+            public static ObjectNode CreateObjectValue(ObjectValueSyntax syntax) 
             {
-                return new ObjectValueNode(CreateObject(syntax.ObjectSyntax));
+                return CreateObject(syntax.ObjectSyntax);
             }
 
-            public static ArrayValueNode CreateArrayValue(ArrayValueSyntax syntax) 
+            public static ArrayNode CreateArrayValue(ArrayValueSyntax syntax) 
             {
-                return new ArrayValueNode(CreateArray(syntax.ArraySyntax));
+                return CreateArray(syntax.ArraySyntax);
             }
 
             public static ObjectNode CreateObject(ObjectSyntax syntax)

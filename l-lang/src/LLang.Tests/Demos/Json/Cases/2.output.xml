@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<JsonSemantics.JsonNode xmlns:i="http://www.w3.org/2001/XMLSchema-instance" i:type="JsonSemantics.ObjectNode" xmlns="http://schemas.datacontract.org/2004/07/LLang.Demos.Json">
+  <Properties>
+    <JsonSemantics.PropertyNode>
+      <Name>"arr"</Name>
+      <Value i:type="JsonSemantics.ArrayNode">
+        <Items xmlns:d5p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+          <d5p1:anyType xmlns:d6p1="http://www.w3.org/2001/XMLSchema" i:type="d6p1:string">"Hello"</d5p1:anyType>
+          <d5p1:anyType xmlns:d6p1="http://www.w3.org/2001/XMLSchema" i:type="d6p1:string">"World"</d5p1:anyType>
+          <d5p1:anyType i:type="JsonSemantics.ObjectNode">
+            <Properties>
+              <JsonSemantics.PropertyNode>
+                <Name>"yesOrNo"</Name>
+                <Value xmlns:d9p1="http://www.w3.org/2001/XMLSchema" i:type="d9p1:boolean">true</Value>
+              </JsonSemantics.PropertyNode>
+              <JsonSemantics.PropertyNode>
+                <Name>"num"</Name>
+                <Value xmlns:d9p1="http://www.w3.org/2001/XMLSchema" i:type="d9p1:decimal">12345</Value>
+              </JsonSemantics.PropertyNode>
+            </Properties>
+          </d5p1:anyType>
+        </Items>
+      </Value>
+    </JsonSemantics.PropertyNode>
+    <JsonSemantics.PropertyNode>
+      <Name>"coord"</Name>
+      <Value i:type="JsonSemantics.ObjectNode">
+        <Properties>
+          <JsonSemantics.PropertyNode>
+            <Name>"x"</Name>
+            <Value i:type="JsonSemantics.ArrayNode">
+              <Items xmlns:d8p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+                <d8p1:anyType xmlns:d9p1="http://www.w3.org/2001/XMLSchema" i:type="d9p1:decimal">111</d8p1:anyType>
+                <d8p1:anyType xmlns:d9p1="http://www.w3.org/2001/XMLSchema" i:type="d9p1:decimal">222</d8p1:anyType>
+              </Items>
+            </Value>
+          </JsonSemantics.PropertyNode>
+          <JsonSemantics.PropertyNode>
+            <Name>"y"</Name>
+            <Value i:type="JsonSemantics.ArrayNode">
+              <Items xmlns:d8p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+                <d8p1:anyType xmlns:d9p1="http://www.w3.org/2001/XMLSchema" i:type="d9p1:decimal">333</d8p1:anyType>
+                <d8p1:anyType xmlns:d9p1="http://www.w3.org/2001/XMLSchema" i:type="d9p1:decimal">444</d8p1:anyType>
+              </Items>
+            </Value>
+          </JsonSemantics.PropertyNode>
+        </Properties>
+      </Value>
+    </JsonSemantics.PropertyNode>
+  </Properties>
+</JsonSemantics.JsonNode>
