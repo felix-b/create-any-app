@@ -26,22 +26,18 @@ namespace LLang.Abstractions
 
         public bool Next(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("RuleMatch.Next", x => x.Input(context).RuleMatch(this));
-
             while (true)
             {
                 var result = TryMatchCurrentStateOrAdvanceToNext(context);
                 if (result.HasValue)
                 {
-                    return traceSpan.ResultValue(result.Value);
+                    return result.Value;
                 }
             }
         }
 
         public bool ValidateMatch(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("RuleMatch.Next", x => x.Input(context).RuleMatch(this));
-
             EndMarker = context.Mark();
 
             var totalStateCount =  Rule.States.Count;
@@ -49,22 +45,18 @@ namespace LLang.Abstractions
 
             if (matchedStateCount > 0 && !_matchedStates[matchedStateCount - 1].ValidateMatch(context))
             {
-                context.Trace.Debug("last matched state failed to validate");
-                return traceSpan.ResultValue(false);
+                return false;
             }
             for (int i = matchedStateCount ; i < totalStateCount; i++)
             {
                 if (!Rule.States[i].Quantifier.IsMetBy(times: 0))
                 {
-                    context.Trace.Debug("unreached state to validate");
-                    return traceSpan.ResultValue(false);
+                    return false;
                 }
             }
             
             Product = OptionalProduct.WithValue(Rule.ProductFactory.Create(this, context));
-            
-            context.Trace.Debug("created rule product", x => x.Product(Product).Rule(Rule));
-            return traceSpan.ResultValue(true);
+            return true;
         }
 
         public IStateMatch<TIn> FindStateByIdOrThrow<TState>(string stateId)
@@ -131,26 +123,20 @@ namespace LLang.Abstractions
 
         public static RuleMatch<TIn, TOut>? TryMatchStart(Rule<TIn, TOut> rule, IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("RuleMatch.TryMatchStart", x => x.Rule(rule).Input(context));
-
             for (int i = 0 ; i < rule.States.Count ; i++)
             {
                 var state = rule.States[i];
 
-                context.Trace.Debug($"attempting state {i+1}/{rule.States.Count}", x => x.State(state));
-
                 if (state.MatchAhead(context))
                 {
-                    var newMatch = new RuleMatch<TIn, TOut>(rule, context, skippedStateCount: i);
-                    context.Trace.Debug($"RULE MATCH-AHEAD SUCCESS", x => x.RuleMatch(newMatch));
-                    return traceSpan.ResultValue(newMatch);
+                    return new RuleMatch<TIn, TOut>(rule, context, skippedStateCount: i);
                 }
                 if (!state.Quantifier.IsMetBy(0))
                 {
-                    context.Trace.Debug($"RULE MATCH-AHEAD FAILURE", x => x.Rule(rule));
-                    return traceSpan.ResultValue<RuleMatch<TIn, TOut>?>(null);
+                    return null;
                 }
             }
+
             return null;
         }
     }

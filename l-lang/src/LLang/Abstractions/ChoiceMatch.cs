@@ -20,15 +20,11 @@ namespace LLang.Abstractions
             Choice = choice;
             StartMarker = reader.Mark();
             EndMarker = StartMarker;
-
-            reader.Trace.Debug("GrammarMatch.ctor", x => x.Input(reader).ChoiceMatch(this));
         }
 
 
         public bool Next(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("GrammarMatch.Next", x => x.ChoiceMatch(this).Input(context));
-
             var anyRuleMatched = false;
 
             for (int i = 0 ; i < _matchingRules.Count ; i++)
@@ -58,7 +54,7 @@ namespace LLang.Abstractions
                 RevertInputToMatchedRuleEnd();
             }
 
-            return traceSpan.ResultValue(anyRuleMatched);
+            return anyRuleMatched;
         }
 
         public bool ValidateMatch(IInputContext<TIn> context)

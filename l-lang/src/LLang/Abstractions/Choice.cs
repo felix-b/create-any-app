@@ -24,21 +24,14 @@ namespace LLang.Abstractions
 
         public bool MatchAhead(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("Choice.MatchAhead", x => x.Choice(this).Input(context));
-
             for (int i = 0 ; i < Rules.Count ; i++) 
             {
-                context.Trace.Debug($"rule {i}/{Rules.Count}: try to match-ahead", x => x.Rule(Rules[i]));
-                
                 if (Rules[i].MatchAhead(context))
                 {
-                    context.Trace.Debug($"RULE MATCH-AHEAD SUCCESS", x => x.Rule(Rules[i]));
-                    return traceSpan.ResultValue(true);
+                    return true;
                 }
             }
-            
-            context.Trace.Debug($"ALL RULES MATCH-AHEAD FAILED", x => x.Choice(this).Input(context));
-            return traceSpan.ResultValue(false);
+            return false;
         }
 
         public ChoiceMatch<TIn, TOut>? TryMatchStart(IInputReader<TIn> input)

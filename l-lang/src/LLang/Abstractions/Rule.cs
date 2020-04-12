@@ -30,11 +30,7 @@ namespace LLang.Abstractions
 
         public bool MatchAhead(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("Rule.MatchAhead", x => x.Rule(this).Input(context));
-            
-            var result = States[0].MatchAhead(context);
-
-            return traceSpan.ResultValue(result);
+            return States[0].MatchAhead(context);
         }
 
         public RuleMatch<TIn, TOut>? TryMatchStart(IInputContext<TIn> context)
