@@ -7,13 +7,18 @@ using LLang.Demos.Json;
 using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Xml;
+using PostSharp.Patterns.Diagnostics;
+using PostSharp.Patterns.Diagnostics.Backends.Console;
 
 namespace LLang.Cli
 {
+    [Log(AttributeExclude = true)]
     class Program
     {
         static int Main(string[] args)
         {
+            LoggingServices.DefaultBackend = new ConsoleLoggingBackend();
+
             if (args.Length != 2)
             {
                 Console.WriteLine("Usage: llang <input_json> <output_xml>");
