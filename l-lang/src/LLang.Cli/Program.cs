@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Xml;
 using PostSharp.Patterns.Diagnostics;
 using PostSharp.Patterns.Diagnostics.Backends.Console;
+using LLang.Tracing;
 
 namespace LLang.Cli
 {
@@ -17,7 +18,7 @@ namespace LLang.Cli
     {
         static int Main(string[] args)
         {
-            LoggingServices.DefaultBackend = new ConsoleLoggingBackend();
+            AnalysisTrace.Initialize(useColors: !Console.IsOutputRedirected);
 
             if (args.Length != 2)
             {
