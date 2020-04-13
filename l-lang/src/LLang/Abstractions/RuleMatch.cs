@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LLang.Tracing;
 
 namespace LLang.Abstractions
 {
@@ -24,6 +25,7 @@ namespace LLang.Abstractions
             _matchedStates.Add(Rule.States[skippedStateCount].CreateMatch(context, initiallyMatched: true));
         }
 
+        [Traced]
         public bool Next(IInputContext<TIn> context)
         {
             while (true)
@@ -36,6 +38,7 @@ namespace LLang.Abstractions
             }
         }
 
+        [Traced]
         public bool ValidateMatch(IInputContext<TIn> context)
         {
             EndMarker = context.Mark();
@@ -55,7 +58,10 @@ namespace LLang.Abstractions
                 }
             }
             
+            context.Trace.Debug("Creating product", x => x.Rule(Rule));
             Product = OptionalProduct.WithValue(Rule.ProductFactory.Create(this, context));
+
+            context.Trace.Success("Created product", x => x.Product(Product.Value).Rule(Rule));
             return true;
         }
 
@@ -87,7 +93,7 @@ namespace LLang.Abstractions
         {
             return MatchedStates
                 .OfType<IRuleRefStateMatch<TIn, TOut>>()
-                .FirstOrDefault(m => m.State.Id == stateId);
+                    .FirstOrDefault(m => m.State.Id == stateId);
         }
 
         public IChoiceRefStateMatch<TIn, TOut>? FindChoiceByStateId(string stateId)
@@ -95,6 +101,12 @@ namespace LLang.Abstractions
             return MatchedStates
                 .OfType<IChoiceRefStateMatch<TIn, TOut>>()
                 .FirstOrDefault(m => m.State.Id == stateId);
+        }
+
+        public override string ToString()
+        {
+            var matchedStatesText = string.Join(",", MatchedStates.Select(m => $"{m.TimesMatched}#{m.State.Id}"));
+            return $"ruleMatch[{Rule.Id}|{matchedStatesText}]";
         }
 
         public Rule<TIn, TOut> Rule { get; }
@@ -121,6 +133,7 @@ namespace LLang.Abstractions
             return false;
         }
 
+        [Traced]
         public static RuleMatch<TIn, TOut>? TryMatchStart(Rule<TIn, TOut> rule, IInputContext<TIn> context)
         {
             for (int i = 0 ; i < rule.States.Count ; i++)

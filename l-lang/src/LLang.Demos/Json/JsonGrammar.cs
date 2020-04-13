@@ -11,7 +11,7 @@ namespace LLang.Demos.Json
     {
         public static Grammar<char, Token> CreateLexicon()
         {
-            var grammar = new Grammar<char, Token>();
+            var grammar = new Grammar<char, Token>("json-lex");
             grammar.Build()
                 .Rule(WhitespaceToken.Create, r => r.CharRange(" \r\n\t", Quantifier.Any))
                 .Rule(OpenObjectToken.Create, r => r.Char('{'))
@@ -138,7 +138,7 @@ namespace LLang.Demos.Json
                 .Token<ColonToken>()
                 .Rule(valueRule);
 
-            var grammar = new Grammar<Token, SyntaxNode>(valueRule);
+            var grammar = new Grammar<Token, SyntaxNode>("json-syn", valueRule);
             return grammar;
 
             // grammar.Build()

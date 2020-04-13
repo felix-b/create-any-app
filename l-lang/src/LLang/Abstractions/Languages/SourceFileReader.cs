@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using LLang.Tracing;
 
 namespace LLang.Abstractions.Languages
 {
@@ -52,6 +53,23 @@ namespace LLang.Abstractions.Languages
         public void ResetTo(Marker<char> position)
         {
             _position = position.Value;
+        }
+
+        public override string ToString()
+        {
+            var input = _position switch {
+                int p when p < 0 => "BOI",
+                int p when p >= _text.Length => "EOI",
+                _ => Escape(_text[_position])
+            };
+            return $"input[{_position}:{input}]";
+
+            static string Escape(char c)
+            {
+                return c <= 32
+                    ? $"'\\x{(int)c:X2}'"
+                    : $"'{c}'";
+            }
         }
 
         public bool IsEndOfInput => _position >= _text.Length;

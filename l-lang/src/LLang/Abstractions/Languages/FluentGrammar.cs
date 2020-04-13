@@ -14,6 +14,19 @@ namespace LLang.Abstractions.Languages
         }
     }
 
+    public static class FluentGrammar
+    {
+        public static Type? TryGetTargetType(Delegate d)
+        {
+            return d.Method?.DeclaringType;
+        }
+
+        public static string TryGetTargetTypeName(Delegate d)
+        {
+            return TryGetTargetType(d)?.Name ?? string.Empty;
+        }
+    }
+
     public class FluentGrammar<TIn, TOut>
     {
         public FluentGrammar(Choice<TIn, TOut> choice)
@@ -26,14 +39,22 @@ namespace LLang.Abstractions.Languages
             Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
             Action<FluentRule<TIn, TOut>>? build = null)
         {
-            return Rule(id: string.Empty, out rule, createProduct, build);
+            return Rule(
+                id: FluentGrammar.TryGetTargetTypeName(createProduct), 
+                out rule, 
+                createProduct, 
+                build);
         }
 
         public FluentGrammar<TIn, TOut> Rule(
             Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
             Action<FluentRule<TIn, TOut>>? build = null)
         {
-            return Rule(id: string.Empty, out _, createProduct, build);
+            return Rule(
+                id: FluentGrammar.TryGetTargetTypeName(createProduct), 
+                out _, 
+                createProduct, 
+                build);
         }
 
         public FluentGrammar<TIn, TOut> Rule(

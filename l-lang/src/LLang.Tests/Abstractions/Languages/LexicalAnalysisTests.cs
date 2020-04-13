@@ -5,7 +5,7 @@ using NUnit.Framework;
 using FluentAssertions;
 using System.IO;
 using System.Linq;
-using LLang.Utilities;
+using LLang.Tracing;
 
 namespace LLang.Tests.Abstractions.Languages
 {
@@ -557,9 +557,8 @@ namespace LLang.Tests.Abstractions.Languages
 
         private SourceFileReader CreateSourceReader(string sourceText)
         {
-            return new SourceFileReader(new ConsoleTrace(), "test.src", new StringReader(sourceText));
+            return new SourceFileReader(new NoopTrace(), "test.src", new StringReader(sourceText));
         }
-
 
         public class AToken : Token
         {

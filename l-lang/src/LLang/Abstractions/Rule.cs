@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LLang.Tracing;
 
 namespace LLang.Abstractions
 {
@@ -28,6 +29,7 @@ namespace LLang.Abstractions
             ProductFactory = productFactory;
         }
 
+        [Traced]
         public bool MatchAhead(IInputContext<TIn> context)
         {
             return States[0].MatchAhead(context);
@@ -36,6 +38,11 @@ namespace LLang.Abstractions
         public RuleMatch<TIn, TOut>? TryMatchStart(IInputContext<TIn> context)
         {
             return RuleMatch<TIn, TOut>.TryMatchStart(this, context);
+        }
+
+        public override string ToString()
+        {
+            return $"rule[{Id}]";
         }
 
         public string Id { get; }

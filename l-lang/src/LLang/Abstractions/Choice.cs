@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LLang.Tracing;
 
 namespace LLang.Abstractions
 {
@@ -22,6 +23,7 @@ namespace LLang.Abstractions
             Rules = rules.ToList();
         }
 
+        [Traced]
         public bool MatchAhead(IInputContext<TIn> context)
         {
             for (int i = 0 ; i < Rules.Count ; i++) 
@@ -34,10 +36,16 @@ namespace LLang.Abstractions
             return false;
         }
 
+        [Traced]
         public ChoiceMatch<TIn, TOut>? TryMatchStart(IInputReader<TIn> input)
         {
             return ChoiceMatch<TIn, TOut>.TryMatchStart(this, input);
         }
+
+        public override string ToString()
+        {
+            return $"choice[{Id}]";
+        }   
 
         public string Id { get; }
         public List<Rule<TIn, TOut>> Rules { get; }

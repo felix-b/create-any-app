@@ -1,24 +1,20 @@
 ﻿using System;
 using System.IO;
-using LLang.Abstractions;
 using LLang.Abstractions.Languages;
-using LLang.Utilities;
 using LLang.Demos.Json;
 using System.Runtime.Serialization;
-using System.Diagnostics;
 using System.Xml;
-using PostSharp.Patterns.Diagnostics;
-using PostSharp.Patterns.Diagnostics.Backends.Console;
 using LLang.Tracing;
+using Stopwatch = System.Diagnostics.Stopwatch;
+using LLang.Abstractions;
 
 namespace LLang.Cli
 {
-    [Log(AttributeExclude = true)]
     class Program
     {
         static int Main(string[] args)
         {
-            AnalysisTrace.Initialize(useColors: !Console.IsOutputRedirected);
+            RealTrace.InitializeConsole(TraceLevel.None, useColors: !Console.IsOutputRedirected);
 
             if (args.Length != 2)
             {
@@ -66,23 +62,29 @@ namespace LLang.Cli
 
         private static SyntaxNode? ParseJsonSyntax(SourceFileReader source)
         {
-            var watch = Stopwatch.StartNew();
-
             var parser = new SyntaxAnalysis();
-            var syntax = parser.Run(
-                source, 
-                JsonGrammar.CreateLexicon(), 
-                JsonGrammar.CreateSyntax(), 
-                JsonGrammar.CreatePreprocessor());
+            var lexicon = JsonGrammar.CreateLexicon();
+            var syntax = JsonGrammar.CreateSyntax();
+            var preprocessor = JsonGrammar.CreatePreprocessor();
 
-            Console.WriteLine($"Parsed in {watch.ElapsedMilliseconds} ms");
-            return syntax;
+            // for (int i = 0 ; i < 99 ; i++)
+            // {
+            //     parser.Run(source, lexicon, syntax, preprocessor);
+            //     source.ResetTo(new Marker<char>(-1));
+            // }
+
+            var watch = Stopwatch.StartNew();
+            var parsedSyntax = parser.Run(source, lexicon, syntax, preprocessor);
+            var elapsed = watch.Elapsed;
+
+            Console.WriteLine($"Parsed in {elapsed}");
+            return parsedSyntax;
         }
 
         private static SourceFileReader CreateSourceReader(string filePath)
         {
             var fileReader = new StreamReader(filePath);
-            return new SourceFileReader(new NoopTrace(), filePath, fileReader);
+            return new SourceFileReader(RealTrace.SingleInstance, filePath, fileReader);
         }
     }
 }

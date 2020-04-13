@@ -1,4 +1,5 @@
 using System;
+using LLang.Tracing;
 
 namespace LLang.Abstractions
 {
@@ -13,6 +14,6 @@ namespace LLang.Abstractions
         bool IsEndOfInput { get; }
         bool HasInput { get; }
         TIn Input { get; }
-        //ITrace Trace { get; }
+        ITrace Trace { get; }
     }
 }
