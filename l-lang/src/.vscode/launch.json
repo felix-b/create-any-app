@@ -10,9 +10,12 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/LLang.Tests/bin/Debug/netcoreapp3.1/LLang.Tests.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/LLang.Tests",
+            "program": "${workspaceFolder}/LLang.Cli/bin/Debug/netcoreapp3.1/LLang.Cli.dll",
+            "args": [
+                "${workspaceFolder}/LLang.Tests/Demos/Json/Cases/0.input.json",
+                "${workspaceFolder}/__debug__output.xml",
+            ],
+            "cwd": "${workspaceFolder}/LLang.Cli/bin/Debug/netcoreapp3.1",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false

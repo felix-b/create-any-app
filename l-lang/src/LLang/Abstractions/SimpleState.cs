@@ -42,32 +42,25 @@ namespace LLang.Abstractions
                 StartMarker = context.Mark();
                 EndMarker = StartMarker;
                 Input = context.Input;
-
-                context.Trace.Debug($"StateMatch(im=${initiallyMatched})", x => x.StateMatch(this).Input(context));
             }
 
             public bool Next(IInputContext<TIn> context)
             {
-                using var traceSpan = context.Trace.Span($"StateMatch.Next", x => x.StateMatch(this).Input(context));
-
                 if (State.Quantifier.Allows(TimesMatched + 1) && _predicate(context))
                 {
                     TimesMatched++;
-                    context.Trace.Debug($"matched, new tm={TimesMatched}");
-                    return traceSpan.ResultValue(true);
+                    return true;
                 }
 
-                return traceSpan.ResultValue(false);
+                return false;
             }
 
             public bool ValidateMatch(IInputContext<TIn> context) 
             {
-                using var traceSpan = context.Trace.Span($"StateMatch.ValidateMatch", x => x.StateMatch(this).Input(context));
-
                 EndMarker = context.Mark();
                 var valid = State.Quantifier.IsMetBy(TimesMatched);
                 
-                return traceSpan.ResultValue(valid);
+                return valid;
             }
 
             public IState<TIn> State { get; }

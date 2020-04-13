@@ -50,35 +50,30 @@ namespace LLang.Abstractions
                 {
                     _ruleMatches.Add(ruleRef.TryMatchStart(context) ?? throw new Exception("Rule did not match"));
                 }
-
-                context.Trace.Debug($"RuleRefStateMatch.ctor(im={initiallyMatched})", x => x.Input(context).RuleRefStateMatch(this));
             }
 
             public bool Next(IInputContext<TIn> context)
             {
-                using var traceSpan = context.Trace.Span($"RuleRefStateMatch.Next", x => x.Input(context).RuleRefStateMatch(this));
-
                 if (_ruleMatches.Count == 0)
                 {
-                    context.Trace.Debug("first-time match");
                     var firstTimeMatch = RuleRef.TryMatchStart(context);
                     if (firstTimeMatch != null)
                     {
                         _ruleMatches.Add(firstTimeMatch);
-                        return traceSpan.ResultValue(true);
+                        return true;
                     }
-                    return traceSpan.ResultValue(false);
+                    return false;
                 }
 
                 var currentRuleMatch = _ruleMatches[^1];
 
                 if (currentRuleMatch.Next(context))
                 {
-                    return traceSpan.ResultValue(true);
+                    return true;
                 }
                 if (!currentRuleMatch.ValidateMatch(context))
                 {
-                    return traceSpan.ResultValue(false);
+                    return false;
                 }
                 
                 TimesMatched++;
@@ -90,28 +85,23 @@ namespace LLang.Abstractions
                     if (nextRuleMatch != null)
                     {
                         _ruleMatches.Add(nextRuleMatch);
-                        return traceSpan.ResultValue(true);
+                        return true;
                     }
                 }
 
-                return traceSpan.ResultValue(false);
+                return false;
             }
 
             public bool ValidateMatch(IInputContext<TIn> context) 
             {
-                using var traceSpan = context.Trace.Span($"RuleRefStateMatch.ValidateMatch", x => x.Input(context).RuleRefStateMatch(this));
-                context.Trace.Debug($"rule matched {_ruleMatches.Count} times");
-
                 if (_ruleMatches.Count > 0)
                 {
                     var lastRuleMatch = _ruleMatches[^1];
                     EndMarker = lastRuleMatch.EndMarker;
-                    var result = lastRuleMatch.ValidateMatch(context);
-                    return traceSpan.ResultValue(result);
+                    return lastRuleMatch.ValidateMatch(context);
                 }                
 
-                var zeroTimesResult = State.Quantifier.IsMetBy(0);
-                return traceSpan.ResultValue(zeroTimesResult);
+                return State.Quantifier.IsMetBy(0);
             }
 
             public TProduct FindSingleRuleProductOrThrow<TProduct>() 

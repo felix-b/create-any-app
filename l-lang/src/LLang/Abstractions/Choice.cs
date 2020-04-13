@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LLang.Tracing;
 
 namespace LLang.Abstractions
 {
@@ -22,29 +23,29 @@ namespace LLang.Abstractions
             Rules = rules.ToList();
         }
 
+        [Traced]
         public bool MatchAhead(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("Choice.MatchAhead", x => x.Choice(this).Input(context));
-
             for (int i = 0 ; i < Rules.Count ; i++) 
             {
-                context.Trace.Debug($"rule {i}/{Rules.Count}: try to match-ahead", x => x.Rule(Rules[i]));
-                
                 if (Rules[i].MatchAhead(context))
                 {
-                    context.Trace.Debug($"RULE MATCH-AHEAD SUCCESS", x => x.Rule(Rules[i]));
-                    return traceSpan.ResultValue(true);
+                    return true;
                 }
             }
-            
-            context.Trace.Debug($"ALL RULES MATCH-AHEAD FAILED", x => x.Choice(this).Input(context));
-            return traceSpan.ResultValue(false);
+            return false;
         }
 
+        [Traced]
         public ChoiceMatch<TIn, TOut>? TryMatchStart(IInputReader<TIn> input)
         {
             return ChoiceMatch<TIn, TOut>.TryMatchStart(this, input);
         }
+
+        public override string ToString()
+        {
+            return $"choice[{Id}]";
+        }   
 
         public string Id { get; }
         public List<Rule<TIn, TOut>> Rules { get; }

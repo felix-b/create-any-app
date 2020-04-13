@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using LLang.Tracing;
 
 namespace LLang.Abstractions
 {
@@ -20,15 +22,11 @@ namespace LLang.Abstractions
             Choice = choice;
             StartMarker = reader.Mark();
             EndMarker = StartMarker;
-
-            reader.Trace.Debug("GrammarMatch.ctor", x => x.Input(reader).ChoiceMatch(this));
         }
 
-
+        [Traced]
         public bool Next(IInputContext<TIn> context)
         {
-            using var traceSpan = context.Trace.Span("GrammarMatch.Next", x => x.ChoiceMatch(this).Input(context));
-
             var anyRuleMatched = false;
 
             for (int i = 0 ; i < _matchingRules.Count ; i++)
@@ -58,9 +56,10 @@ namespace LLang.Abstractions
                 RevertInputToMatchedRuleEnd();
             }
 
-            return traceSpan.ResultValue(anyRuleMatched);
+            return anyRuleMatched;
         }
 
+        [Traced]
         public bool ValidateMatch(IInputContext<TIn> context)
         {
             for (int i = 0 ; i < _matchingRules.Count ; i++)
@@ -79,12 +78,20 @@ namespace LLang.Abstractions
             return MatchedRule != null;
         }
 
+        public override string ToString()
+        {
+            var matchingRulesText = string.Join(",", MatchingRules.Select(m => m?.Rule.Id ?? "#"));
+            var matchedRulesText = string.Join(",", MatchedRules.Select(m => m.Rule.Id));
+            return $"choiceMatch[{Choice.Id}|{matchingRulesText}|{matchedRulesText}]";
+        }
+
         public Choice<TIn, TOut> Choice { get; }
         public Marker<TIn> StartMarker { get; }
         public Marker<TIn> EndMarker { get; private set; }
         public RuleMatch<TIn, TOut>? MatchedRule { get; private set; }
         public IReadOnlyList<RuleMatch<TIn, TOut>?> MatchingRules => _matchingRules;
         public IReadOnlyList<RuleMatch<TIn, TOut>> MatchedRules => _matchedRules;
+
 
         private void RevertInputToMatchedRuleEnd()
         {

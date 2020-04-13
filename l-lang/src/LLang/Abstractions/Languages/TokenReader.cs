@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LLang.Tracing;
 
 namespace LLang.Abstractions.Languages
 {
@@ -46,6 +47,16 @@ namespace LLang.Abstractions.Languages
             return IsValidPosition(startPosition) && IsValidPosition(endPosition)
                 ? new ReadOnlyMemory<Token>(_tokens, start: startPosition, length: endPosition - startPosition)
                 : ReadOnlyMemory<Token>.Empty;
+        }
+
+        public override string ToString()
+        {
+            var input = _position switch {
+                int p when p < 0 => "BOI",
+                int p when p >= _tokens.Length => "EOI",
+                _ => _tokens[_position].ToString()
+            };
+            return $"input[{_position}:{input}]";
         }
 
         public bool IsEndOfInput => _position >= _tokens.Length;

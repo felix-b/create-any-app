@@ -20,5 +20,10 @@ namespace LLang.Abstractions
             : base(id, rules)
         {
         }
+
+        public override string ToString()
+        {
+            return $"grammar<{typeof(TIn).Name[0]},{typeof(TOut).Name[0]}>{(Id.Length > 0 ? $"[{Id}]" : "")}";
+        }
     }
 }

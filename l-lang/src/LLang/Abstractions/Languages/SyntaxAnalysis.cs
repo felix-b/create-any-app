@@ -20,22 +20,27 @@ namespace LLang.Abstractions.Languages
             Preprocessor? preprocessor = null)
         {
             using var traceSpan = reader.Trace.Span("SyntaxAnalysis.Run");
+            var lexerTraceSpan = reader.Trace.Span("LexicalAnalysis");
 
             var lexicalAnalysis = new LexicalAnalysis();
             var tokens = lexicalAnalysis.RunToEnd(lexicalRules, reader);
- 
             var preprocessedTokens = (preprocessor != null 
                 ? preprocessor(tokens)
                 : tokens
             ).ToArray();
 
-            using var syntaxTraceSpan = reader.Trace.Span("SyntaxAnalysis");
+            lexerTraceSpan.ResultValue($"{preprocessedTokens.Length} token(s) after preprocess");
+            lexerTraceSpan.Dispose();
+            using var parserTraceSpan = reader.Trace.Span("SyntaxAnalysis");
 
             var tokenReader = new TokenReader(reader.Trace, preprocessedTokens);
             var syntaxOrNone = Analysis.RunOnce(syntaxRules, tokenReader);
             var resultSyntax = syntaxOrNone.HasValue ? syntaxOrNone.Value : null;
 
-            return syntaxTraceSpan.ResultValue(resultSyntax);
+            parserTraceSpan.ResultValue(resultSyntax);
+            traceSpan.ResultValue("OK");
+
+            return resultSyntax;
         }
     }
 

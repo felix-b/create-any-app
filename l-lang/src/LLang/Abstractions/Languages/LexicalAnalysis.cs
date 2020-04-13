@@ -6,13 +6,14 @@ namespace LLang.Abstractions.Languages
     {
         public IEnumerable<Token> RunToEnd(Grammar<char, Token> language, SourceFileReader reader)
         {
-            using var trace = reader.Trace.Span("LexicalAnalysis.RunToEnd");
+            int tokenCount = 0;
 
             while (!reader.IsEndOfInput)
             {
                 var tokenOrNone = Analysis.RunOnce(language, reader);
                 if (tokenOrNone.HasValue)
                 {
+                    tokenCount++;
                     yield return tokenOrNone.Value;
                 }
                 else
@@ -20,6 +21,8 @@ namespace LLang.Abstractions.Languages
                     break;
                 }
             }
+
+            reader.Trace.Success($"Lexer scan complete, {tokenCount} token(s).");
         }
     }
 }
