@@ -98,19 +98,9 @@ namespace LLang.Demos.Json
                 itemRule: valueRule, 
                 listProduct: ArraySyntax.ConstructFromSyntaxList);
 
-            objectRule.Build().Choice(g => g
-                .Rule("empty", ObjectSyntax.ConstructEmpty, r => r
-                    .Token<OpenObjectToken>()
-                    .Token<CloseObjectToken>())
-                .Rule("non-empty", ObjectSyntax.ConstructNonEmpty, r => r
-                    .Token<OpenObjectToken>()
-                    .Rule("first-prop", propertyRule)
-                    .Group("more-props", 
-                        PropertySyntax.RetrieveFromList, 
-                        r => r.Token<CommaToken>().Rule(propertyRule),
-                        Quantifier.Any)
-                    .Token<CloseObjectToken>())
-            );
+            objectRule.Build().EnclosedSeparatedList<ObjectSyntax, PropertySyntax, OpenObjectToken, CommaToken, CloseObjectToken>(
+                itemRule: propertyRule, 
+                listProduct: ObjectSyntax.ConstructFromSyntaxList);
 
             propertyRule.Build()
                 .Token<StringToken>("name")
@@ -583,6 +573,11 @@ namespace LLang.Demos.Json
                     SourceSpan.FromTokens(match, context), 
                     properties.Cast<PropertySyntax>()
                 );
+            }
+
+            public static ObjectSyntax ConstructFromSyntaxList(SyntaxList list)
+            {
+                return new ObjectSyntax(list.Span, list.Cast<PropertySyntax>());
             }
         }
 
