@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LLang.Utilities;
 
 namespace LLang.Abstractions.Languages
 {
@@ -167,73 +168,69 @@ namespace LLang.Abstractions.Languages
 
         public static FluentRule<char, Token> Char(this FluentRule<char, Token> rule, char c, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(new CharState($"c={c}", c, negating: false, quantifier));
+            rule.ThisRule.States.Add(new CharState($"{c}", c, negating: false, quantifier));
             return rule;
         }
-
-        // public static Rule<char, Token> Char(this Rule<char, Token> rule, Func<char, bool> predicate, Quantifier? quantifier = null)
-        // {
-        //     rule.States.Add(new SimpleState<char>("cF", context => predicate(context.Input), quantifier));
-        //     return rule;
-        // }
 
         public static FluentRule<char, Token> NotChar(this FluentRule<char, Token> rule, char c, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(new CharState($"c!={c}", c, negating: true, quantifier));
+            rule.ThisRule.States.Add(new CharState($"!{c}", c, negating: true, quantifier));
             return rule;
         }
 
-        // public static Rule<char, Token> NotChar(this Rule<char, Token> rule, Func<char, bool> predicate, Quantifier? quantifier = null)
-        // {
-        //     rule.States.Add(new SimpleState<char>("cF", context => !predicate(context.Input), quantifier));
-        //     return rule;
-        // }
-
         public static FluentRule<char, Token> Class(this FluentRule<char, Token> rule, CharClass @class, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(new CharClassState($"cls={@class}", @class, negating: false, quantifier));
+            rule.ThisRule.States.Add(new CharClassState($"<{@class}>", @class, negating: false, quantifier));
             return rule;
         }
 
         public static FluentRule<char, Token> NotClass(this FluentRule<char, Token> rule, CharClass @class, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(new CharClassState($"cls!={@class}", @class, negating: true, quantifier));
+            rule.ThisRule.States.Add(new CharClassState($"!<{@class}>", @class, negating: true, quantifier));
             return rule;
         }
 
         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, ValueTuple<char, char>[] ranges, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(CharRangeState.Create("crng", negating: false, quantifier, ranges));
+            var id = GetIdFromCharRanges(ranges);
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: false, quantifier, ranges));
             return rule;
         }
 
         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, ValueTuple<char, char> range, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(CharRangeState.Create("crng", negating: false, quantifier, new[] { range }));
+            var ranges = new[] { range };
+            var id = GetIdFromCharRanges(ranges);
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: false, quantifier, ranges));
             return rule;
         }
 
         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(CharRangeState.Create("crng", negating: false, quantifier, GetRangesFromString(chars)));
+            var id = GetIdFromCharRanges(chars);
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: false, quantifier, GetRangesFromString(chars)));
             return rule;
         }
 
         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, ValueTuple<char, char>[] ranges, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(CharRangeState.Create("!crng", negating: true, quantifier, ranges));
+            var id = GetIdFromCharRanges(ranges, negating: true);
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: true, quantifier, ranges));
             return rule;
         }
 
         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, ValueTuple<char, char> range, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(CharRangeState.Create("!crng", negating: true, quantifier, new[] { range }));
+            var ranges = new[] { range };
+            var id = GetIdFromCharRanges(ranges, negating: true);
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: true, quantifier, ranges));
             return rule;
         }
 
         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
         {
-            rule.ThisRule.States.Add(CharRangeState.Create("!crng", negating: true, quantifier, GetRangesFromString(chars)));
+            var id = GetIdFromCharRanges(chars, negating: true);
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: true, quantifier, GetRangesFromString(chars)));
             return rule;
         }
 
@@ -252,6 +249,18 @@ namespace LLang.Abstractions.Languages
                 quantifier);
             
             return rule;
+        }
+
+        private static string GetIdFromCharRanges(ValueTuple<char, char>[] ranges, bool negating = false)
+        {
+            var negationPrefix = negating ? "!" : string.Empty;
+            return $"{negationPrefix}[{string.Join(",", ranges.Select(r => $"{r.Item1}-{r.Item2}"))}]";
+        }
+
+        private static string GetIdFromCharRanges(string chars, bool negating = false)
+        {
+            var negationPrefix = negating ? "!" : string.Empty;
+            return negationPrefix + string.Join(string.Empty, chars.Select(c => c.EscapeIfControl()));
         }
 
         private static ValueTuple<char, char>[] GetRangesFromString(string s)

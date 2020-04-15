@@ -1,10 +1,13 @@
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using PostSharp.Aspects;
 
 namespace LLang.Tracing
 {
     [Serializable]
+    [DebuggerNonUserCode]
+    [DebuggerStepThrough]
     public class TracedAttribute : OnMethodBoundaryAspect
     {
         public override void OnEntry(MethodExecutionArgs args)

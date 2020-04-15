@@ -6,18 +6,23 @@ using FluentAssertions;
 using System.IO;
 using System.Linq;
 using LLang.Demos.Json;
-using static LLang.Demos.Json.JsonGrammar;
 using LLang.Tracing;
+using static LLang.Demos.Json.JsonGrammar;
 
 namespace LLang.Tests.Demos.Json
 {
     [TestFixture]
     public class JsonGrammarSyntaxTests
     {
-        [Test]
-        public void ScalarValue()
+        public static readonly JsonGrammar.SyntaxGrammarKind[] SyntaxGrammarCases = new[] {
+            JsonGrammar.SyntaxGrammarKind.NonRecursiveLists,
+            JsonGrammar.SyntaxGrammarKind.RecursiveLists
+        };
+
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void ScalarValue(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"""some-text""");
+            var syntax = ParseJsonSyntax(@"""some-text""", grammarKind);
 
             syntax.DrillAs<ScalarValueSyntax>(scalarValueSyntax => {
                 scalarValueSyntax.ScalarToken.Should().BeOfType<StringToken>();
@@ -25,10 +30,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void EmptyArray()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void EmptyArray(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[]");
+            var syntax = ParseJsonSyntax(@"[]", grammarKind);
 
             syntax.Should().NotBeNull();
             syntax.Should().BeOfType<ArrayValueSyntax>();
@@ -38,10 +43,10 @@ namespace LLang.Tests.Demos.Json
             arraySyntax.Items.Should().BeEmpty();
         }
 
-        [Test]
-        public void FlatSingleItemArray()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void FlatSingleItemArray(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[123]");
+            var syntax = ParseJsonSyntax(@"[123]", grammarKind);
 
             syntax.Should().NotBeNull();
             syntax.Should().BeOfType<ArrayValueSyntax>();
@@ -53,10 +58,10 @@ namespace LLang.Tests.Demos.Json
             ((ScalarValueSyntax)arraySyntax.Items[0]).ScalarToken.ClrValue.Should().Be(123);
         }
 
-        [Test]
-        public void FlatTwoItemsArray()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void FlatTwoItemsArray(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[123,true]");
+            var syntax = ParseJsonSyntax(@"[123,true]", grammarKind);
 
             syntax.Should().NotBeNull();
             syntax.Should().BeOfType<ArrayValueSyntax>();
@@ -71,10 +76,10 @@ namespace LLang.Tests.Demos.Json
             );
         }
 
-        [Test]
-        public void FlatThreeItemsArray()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void FlatThreeItemsArray(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[123,true,""abc""]");
+            var syntax = ParseJsonSyntax(@"[123,true,""abc""]", grammarKind);
 
             syntax.Should().NotBeNull();
             syntax.Should().BeOfType<ArrayValueSyntax>();
@@ -89,10 +94,10 @@ namespace LLang.Tests.Demos.Json
             );
         }
 
-        [Test]
-        public void EmptyObject()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void EmptyObject(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{}");
+            var syntax = ParseJsonSyntax(@"{}", grammarKind);
 
             syntax.Should().NotBeNull().And.BeOfType<ObjectValueSyntax>();
             var objectSyntax = ((ObjectValueSyntax)syntax!).ObjectSyntax;
@@ -101,10 +106,10 @@ namespace LLang.Tests.Demos.Json
         }
 
 
-        [Test]
-        public void FlatObjectWithSingleProperty()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void FlatObjectWithSingleProperty(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""num"":123}");
+            var syntax = ParseJsonSyntax(@"{""num"":123}", grammarKind);
 
             syntax.Should().NotBeNull().And.BeOfType<ObjectValueSyntax>();
             var objectSyntax = ((ObjectValueSyntax)syntax!).ObjectSyntax;
@@ -116,10 +121,10 @@ namespace LLang.Tests.Demos.Json
                .Which.ScalarToken.ClrValue.Should().Be(123.0m);
         }
 
-        [Test]
-        public void FlatObjectWithTwoProperties()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void FlatObjectWithTwoProperties(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""num"":123,""str"":""abc""}");
+            var syntax = ParseJsonSyntax(@"{""num"":123,""str"":""abc""}", grammarKind);
 
             syntax.Should().NotBeNull().And.BeOfType<ObjectValueSyntax>();
             var objectSyntax = ((ObjectValueSyntax)syntax!).ObjectSyntax;
@@ -135,10 +140,10 @@ namespace LLang.Tests.Demos.Json
                .Which.ScalarToken.ClrValue.Should().Be("abc");
         }
 
-        [Test]
-        public void FlatObjectWithThreeProperties()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void FlatObjectWithThreeProperties(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""num"":123,""str"":""abc"",""yesOrNo"":true}");
+            var syntax = ParseJsonSyntax(@"{""num"":123,""str"":""abc"",""yesOrNo"":true}", grammarKind);
 
             syntax.Should().NotBeNull().And.BeOfType<ObjectValueSyntax>();
             var objectSyntax = ((ObjectValueSyntax)syntax!).ObjectSyntax;
@@ -158,10 +163,10 @@ namespace LLang.Tests.Demos.Json
                .Which.ScalarToken.ClrValue.Should().Be(true); 
         }
 
-        [Test]
-        public void EmptyNestedArray()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void EmptyNestedArray(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[[]]");
+            var syntax = ParseJsonSyntax(@"[[]]", grammarKind);
 
             syntax.DrillAs<ArrayValueSyntax>().ArraySyntax.Drill(arraySyntax => {
                 arraySyntax.Items.Count.Should().Be(1);
@@ -171,10 +176,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void NestedArrayInMiddleItem()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void NestedArrayInMiddleItem(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[11,[22,33],44]");
+            var syntax = ParseJsonSyntax(@"[11,[22,33],44]", grammarKind);
 
             syntax.DrillAs<ArrayValueSyntax>().ArraySyntax.Drill(arraySyntax => {
                 arraySyntax.Items.Count.Should().Be(3);
@@ -198,10 +203,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void NestedArrayInFirstItem()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void NestedArrayInFirstItem(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[[11,22],33]");
+            var syntax = ParseJsonSyntax(@"[[11,22],33]", grammarKind);
 
             syntax.DrillAs<ArrayValueSyntax>().ArraySyntax.Drill(arraySyntax => {
                 arraySyntax.Items.Count.Should().Be(2);
@@ -220,10 +225,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void NestedArrayInLastItem()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void NestedArrayInLastItem(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"[11,[22,33]]");
+            var syntax = ParseJsonSyntax(@"[11,[22,33]]", grammarKind);
 
             syntax.DrillAs<ArrayValueSyntax>().ArraySyntax.Drill(arraySyntax => {
                 arraySyntax.Items.Count.Should().Be(2);
@@ -242,10 +247,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void EmptyNestedObject()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void EmptyNestedObject(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""p1"":{}}");
+            var syntax = ParseJsonSyntax(@"{""p1"":{}}", grammarKind);
 
             syntax.Should().NotBeNull();
 
@@ -261,10 +266,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void NestedObjectInMiddleProperty()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void NestedObjectInMiddleProperty(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""p1"":11,""p2"":{""p3"":33,""p4"":44},""p5"":55}");
+            var syntax = ParseJsonSyntax(@"{""p1"":11,""p2"":{""p3"":33,""p4"":44},""p5"":55}", grammarKind);
 
             syntax.Should().NotBeNull();
 
@@ -316,10 +321,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void NestedObjectInFirstProperty()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void NestedObjectInFirstProperty(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""p1"":{""p2"":22},""p3"":33}");
+            var syntax = ParseJsonSyntax(@"{""p1"":{""p2"":22},""p3"":33}", grammarKind);
 
             syntax.Should().NotBeNull();
 
@@ -352,10 +357,10 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        [Test]
-        public void NestedObjectInLastProperty()
+        [TestCaseSource(nameof(SyntaxGrammarCases))]
+        public void NestedObjectInLastProperty(JsonGrammar.SyntaxGrammarKind grammarKind)
         {
-            var syntax = ParseJsonSyntax(@"{""p1"":11,""p2"":{""p3"":33}}");
+            var syntax = ParseJsonSyntax(@"{""p1"":11,""p2"":{""p3"":33}}", grammarKind);
 
             syntax.Should().NotBeNull();
 
@@ -388,7 +393,7 @@ namespace LLang.Tests.Demos.Json
             });
         }
 
-        private SyntaxNode? ParseJsonSyntax(string json)
+        private SyntaxNode? ParseJsonSyntax(string json, JsonGrammar.SyntaxGrammarKind syntaxKind)
         {
             var parser = new SyntaxAnalysis();
             var source = CreateSourceReader(json);
@@ -396,7 +401,7 @@ namespace LLang.Tests.Demos.Json
             var syntax = parser.Run(
                 source, 
                 JsonGrammar.CreateLexicon(), 
-                JsonGrammar.CreateSyntax(), 
+                JsonGrammar.CreateSyntax(syntaxKind), 
                 JsonGrammar.CreatePreprocessor());
 
             return syntax;

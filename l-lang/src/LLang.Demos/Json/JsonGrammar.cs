@@ -9,6 +9,12 @@ namespace LLang.Demos.Json
 {
     public static class JsonGrammar
     {
+        public enum SyntaxGrammarKind
+        {
+            NonRecursiveLists,
+            RecursiveLists
+        }
+
         public static Grammar<char, Token> CreateLexicon()
         {
             var grammar = new Grammar<char, Token>("json-lex");
@@ -28,73 +34,56 @@ namespace LLang.Demos.Json
                         Token.CreateToken,
                         r => r.Char('.').CharRange(('0','9'), Quantifier.AtLeastOnce), 
                         Quantifier.AtMostOnce
-                    ))
+                    )
+                    .Group(
+                        "exponent",
+                        Token.CreateToken,
+                        r => r
+                            .CharRange("eE", Quantifier.Once)
+                            .CharRange("+-", Quantifier.AtMostOnce)
+                            .CharRange(('0','9'), Quantifier.AtLeastOnce),
+                        Quantifier.AtMostOnce
+                    )
+                )
                 .Rule(StringToken.Create, r => r
                     .Char('"')
                     .Choice("value", g => g
-                        .Rule("non-esc-text", NonEscapedTextToken.Create, r => r.NotCharRange("\"\\", Quantifier.Any))
-                        .Rule("esc-char", EscapeSequenceToken.CreateFromChar, r => r.Char('\\').AnyChar())
-                        .Rule("esc-utf16", EscapeSequenceToken.CreateFromHex, r => r.String("\\u").CharRange(('0','9'), Quantifier.Exactly(4))),
+                        .Rule("non-esc-text", NonEscapedTextToken.Create, r => r
+                            .NotCharRange("\"\\", Quantifier.Any)
+                        )
+                        .Rule("esc-char", EscapeSequenceToken.CreateFromChar, r => r
+                            .Char('\\')
+                            .AnyChar()
+                        )
+                        .Rule("esc-utf16", EscapeSequenceToken.CreateFromHex, r => r
+                            .String("\\u")
+                            .CharRange(new[] { ('0','9'),('a','f'),('A','F') }, Quantifier.Exactly(4))
+                        ),
                         Quantifier.Any
                     )
-                    .Char('"'))
+                    .Char('"')
+                )
                 .Rule(TrueToken.Create, r => r.String("true"))
-                .Rule(FalseToken.Create, r => r.String("false"));
+                .Rule(FalseToken.Create, r => r.String("false"))
+                .Rule(NullToken.Create, r => r.String("null"));
 
             return grammar;
-
-            // return FluentLanguage.NewLexicon()
-            //     .Rule("rWS", r => r.CharRange(" \r\n\t", Quantifier.Any), (m, x) => new WhitespaceToken(m, x))
-            //     .Rule("rNum", r => r
-            //         .CharRange("+-", Quantifier.AtMostOnce)
-            //         .CharRange(('0','9'), Quantifier.AtLeastOnce)
-            //         .Group(
-            //             "gNumDec", 
-            //             r => r.Char('.').CharRange(('0','9'), Quantifier.AtLeastOnce), 
-            //             (m, x) => new Token("gNumDec", m, x),
-            //             Quantifier.AtMostOnce
-            //         ),
-            //         (m, x) => new NumberToken(m, x)
-            //     )
-            //     .Rule("rStr", r => r
-            //         .Char('"')
-            //         .Choice(
-            //             "gStrContent", 
-            //             g => g
-            //                 .Rule("rStrNonEsc", r => r.NotCharRange("\"\\", Quantifier.Any), (m, x) => new Token("STRCHARS", m, x))
-            //                 .Rule("rStrEsc", r => r.Char('\\').AnyChar(), (m, x) => new Token("STRESC", m, x))
-            //                 .Rule("gStrUtf16", r => r.String("\\u").CharRange("0123456789", Quantifier.Exactly(4)), (m, x) => new Token("STRU16", m, x)),
-            //             Quantifier.Any
-            //         )
-            //         .Char('"'),
-            //         (m, x) => new StringToken(m, x)
-            //     )
-            //     .Rule("rTrue", r => r.String("true"), (m, x) => new TrueToken(m, x))
-            //     .Rule("rFalse", r => r.String("false"), (m, x) => new FalseToken(m, x))
-            //     .Rule("rOpenObj", r => r.Char('{'), (m, x) => new OpenObjectToken(m, x))
-            //     .Rule("rCloseObj", r => r.Char('}'), (m, x) => new CloseObjectToken(m, x))
-            //     .Rule("rOpenArr", r => r.Char('['), (m, x) => new OpenArrayToken(m, x))
-            //     .Rule("rCloseArr", r => r.Char(']'), (m, x) => new CloseArrayToken(m, x))
-            //     .Rule("rColon", r => r.Char(':'), (m, x) => new ColonToken(m, x))
-            //     .Rule("rComma", r => r.Char(','), (m, x) => new CommaToken(m, x))
-            //     .GetGrammar();
         }
 
-        public static Grammar<Token, SyntaxNode> CreateSyntax()
+        public static Grammar<Token, SyntaxNode> CreateSyntax(SyntaxGrammarKind kind) =>
+            kind switch 
+            {
+                SyntaxGrammarKind.NonRecursiveLists => CreateSyntaxWithNonRecursiveLists(),
+                SyntaxGrammarKind.RecursiveLists => CreateSyntaxWithRecursiveLists(),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind))
+            };
+
+        public static Grammar<Token, SyntaxNode> CreateSyntaxWithNonRecursiveLists()
         {
             var valueRule = new Rule<Token, SyntaxNode>("value", ValueSyntax.ConstructAnyValue);
             var arrayRule = new Rule<Token, SyntaxNode>("array", ArraySyntax.FindInSubRules);
             var objectRule = new Rule<Token, SyntaxNode>("object", ObjectSyntax.FindInSubRules);
             var propertyRule = new Rule<Token, SyntaxNode>("property", PropertySyntax.Construct);
-
-            // var numberRule = new Rule<Token, SyntaxNode>("number-value", ScalarValueSyntax.Construct);
-            // var stringRule = new Rule<Token, SyntaxNode>("string-value", ScalarValueSyntax.Construct);
-            // var trueRule = new Rule<Token, SyntaxNode>("true-value", ScalarValueSyntax.Construct);
-            // var falseRule = new Rule<Token, SyntaxNode>("false-value", ScalarValueSyntax.Construct);
-            // numberRule.Build().Token<NumberToken>();
-            // stringRule.Build().Token<StringToken>();
-            // trueRule.Build().Token<TrueToken>();
-            // falseRule.Build().Token<FalseToken>();
 
             valueRule.Build().Choice(g => g
                 .Rule("number-value", ScalarValueSyntax.Construct, r => r.Token<NumberToken>())
@@ -140,120 +129,75 @@ namespace LLang.Demos.Json
 
             var grammar = new Grammar<Token, SyntaxNode>("json-syn", valueRule);
             return grammar;
+        }
 
-            // grammar.Build()
-            //     .Rule("object", out var objectRule, ObjectSyntax.FindInSubRules)
-            //     .Rule("property", out var propertyRule, PropertySyntax.Construct)
-            //     .Rule("value", out var valueRule, ValueSyntax.ConstructAnyValue)
-            //     .Rule("array", out var arrayRule, ArraySyntax.FindInSubRules);
+        public static Grammar<Token, SyntaxNode> CreateSyntaxWithRecursiveLists()
+        {
+            var valueRule = new Rule<Token, SyntaxNode>("value", ValueSyntax.ConstructAnyValue);
+            var arrayRule = new Rule<Token, SyntaxNode>("array", ArraySyntax.FindInSubRules);
+            var objectRule = new Rule<Token, SyntaxNode>("object", ObjectSyntax.FindInSubRules);
+            var propertyRule = new Rule<Token, SyntaxNode>("property", PropertySyntax.Construct);
+            var propertyListRule = new Rule<Token, SyntaxNode>("property-list", SyntaxList.ConstructOfType<PropertySyntax>);
+            var itemListRule = new Rule<Token, SyntaxNode>("item-list", SyntaxList.ConstructOfType<ValueSyntax>);
 
-            // valueRule.Build().Choice(g => g
-            //     .Rule("number-value", ScalarValueSyntax.Construct, r => r.Token<NumberToken>())
-            //     .Rule("string-value", ScalarValueSyntax.Construct, r => r.Token<StringToken>())
-            //     .Rule("true-value", ScalarValueSyntax.Construct, r => r.Token<TrueToken>())
-            //     .Rule("false-value", ScalarValueSyntax.Construct, r => r.Token<FalseToken>())
-            //     .Rule(objectRule)
-            //     .Rule(arrayRule)
-            // );
+            propertyListRule.Build().Choice(g => g
+                .Rule(propertyRule)
+                .Rule("property-list-prepend", SyntaxList.Construct, r => r
+                    .Group("property-list-prepend",
+                        SyntaxList.Construct, 
+                        r => r.Rule(propertyRule).Token<CommaToken>().Rule(propertyListRule),
+                        Quantifier.Once)
+                )
+            );
 
-            // propertyRule.Build()
-            //     .Token<StringToken>("name")
-            //     .Token<ColonToken>()
-            //     .Rule(valueRule);
+            itemListRule.Build().Choice(g => g
+                .Rule(valueRule)
+                .Rule("item-list-prepend", SyntaxList.Construct, r => r
+                    .Group("item-list-prepend",
+                        SyntaxList.Construct, 
+                        r => r.Rule(valueRule).Token<CommaToken>().Rule(itemListRule),
+                        Quantifier.Once)
+                )
+            );
 
-            // arrayRule.Build().Choice(g => g
-            //     .Rule("empty", ArraySyntax.ConstructEmpty, r => r
-            //         .Token<OpenArrayToken>()
-            //         .Token<CloseArrayToken>())
-            //     .Rule("non-empty", ArraySyntax.ConstructNonEmpty, r => r
-            //         .Token<OpenArrayToken>()
-            //         .Rule("first-item", valueRule)
-            //         .Group("more-items", 
-            //             ValueSyntax.RetrieveFromList, 
-            //             r => r.Token<CommaToken>().Rule(valueRule),
-            //             Quantifier.Any)
-            //         .Token<CloseArrayToken>())
-            // );
+            valueRule.Build().Choice(g => g
+                .Rule("number-value", ScalarValueSyntax.Construct, r => r.Token<NumberToken>())
+                .Rule("string-value", ScalarValueSyntax.Construct, r => r.Token<StringToken>())
+                .Rule("true-value", ScalarValueSyntax.Construct, r => r.Token<TrueToken>())
+                .Rule("false-value", ScalarValueSyntax.Construct, r => r.Token<FalseToken>())
+                .Rule(arrayRule)
+                .Rule(objectRule)
+            );
 
-            // objectRule.Build().Choice(g => g
-            //     .Rule("empty", ObjectSyntax.ConstructEmpty, r => r
-            //         .Token<OpenObjectToken>()
-            //         .Token<CloseObjectToken>())
-            //     .Rule("non-empty", ObjectSyntax.ConstructNonEmpty, r => r
-            //         .Token<OpenObjectToken>()
-            //         .Rule("first-prop", valueRule)
-            //         .Group("more-props", 
-            //             PropertySyntax.RetrieveFromList, 
-            //             r => r.Token<CommaToken>().Rule(propertyRule),
-            //             Quantifier.Any)
-            //         .Token<CloseObjectToken>())
-            // );
+            arrayRule.Build().Choice(g => g
+                .Rule("empty", ArraySyntax.ConstructEmpty, r => r
+                    .Token<OpenArrayToken>()
+                    .Token<CloseArrayToken>())
+                .Rule("non-empty", ArraySyntax.ConstructFromItemList, r => r
+                    .Token<OpenArrayToken>()
+                    .Rule(itemListRule)
+                    .Token<CloseArrayToken>()
+                )
+            );
 
-            // return grammar;
+            objectRule.Build().Choice(g => g
+                .Rule("empty", ObjectSyntax.ConstructEmpty, r => r
+                    .Token<OpenObjectToken>()
+                    .Token<CloseObjectToken>())
+                .Rule("non-empty", ObjectSyntax.ConstructFromPropertyList, r => r
+                    .Token<OpenObjectToken>()
+                    .Rule(propertyListRule)
+                    .Token<CloseObjectToken>()
+                )
+            );
 
-            // var syntax = FluentLanguage.NewSyntax();
-            
-            // syntax.Rule(out var objectRuleRef, "Object", r => r, (m, x) => new ObjectSyntax(SourceSpan.Empty, new SyntaxNode[0]));
-            // syntax.Rule(out var arrayRuleRef, "Array", r => r, (m, x) => new ArraySyntax(SourceSpan.Empty, new SyntaxNode[0]));
-            
-            // syntax.Rule(
-            //     out var valueRuleRef, 
-            //     "Value", 
-            //     r => r.Choice("ValueChoice", g => g
-            //         .Rule("NumberValue", r => r.Token<NumberToken>("Number"), (m, x) => new ValueSyntax(SourceSpan.Empty, new SyntaxNode[0]))
-            //         .Rule("StringValue", r => r.Token<StringToken>("String"), (m, x) => new ValueSyntax(SourceSpan.Empty, new SyntaxNode[0]))
-            //         .Rule("TrueValue", r => r.Token<TrueToken>("True"), (m, x) => new ValueSyntax(SourceSpan.Empty, new SyntaxNode[0]))
-            //         .Rule("FalseValue", r => r.Token<FalseToken>("False"), (m, x) => new ValueSyntax(SourceSpan.Empty, new SyntaxNode[0]))
-            //         .Rule(objectRuleRef)
-            //         .Rule(arrayRuleRef)
-            //     ),
-            //     (m, x) => new ValueSyntax(SourceSpan.Empty, new SyntaxNode[0]));
-            
-            // syntax.Rule(
-            //     out var propertyRuleRef, 
-            //     "Property", 
-            //     r => r.Token<StringToken>("name").Token<ColonToken>("colon").Group("value", valueRuleRef), 
-            //     (m, x) => new PropertySyntax(SourceSpan.Empty, new SyntaxNode[0]));
-            
-            // arrayRuleRef.GetFluent()
-            //     .Choice("ArrayChoice", g => g
-            //         .Rule("EmptyArray", r => r
-            //             .Token<OpenArrayToken>("OpenArray")
-            //             .Token<CloseArrayToken>("CloseArray"), 
-            //             (m, x) => new ArraySyntax(SourceSpan.Empty, new SyntaxNode[0])
-            //         )
-            //         .Rule("NonEmptyArray", r => r
-            //             .Token<OpenArrayToken>("OpenArray")
-            //             .Group("FirstItem", valueRuleRef)
-            //             .Group("RestOfItems", r => r
-            //                 .Token<CommaToken>("Comma")
-            //                 .Group("RestValueRef", valueRuleRef), 
-            //                 (m, x) => new ArraySyntax(SourceSpan.Empty, new SyntaxNode[0]), 
-            //                 Quantifier.Any)
-            //             .Token<CloseArrayToken>("CloseArray"), 
-            //             (m, x) => new ArraySyntax(SourceSpan.Empty, new SyntaxNode[0]))
-            //     );
-            
-            // objectRuleRef.GetFluent()
-            //     .Choice("ObjectChoice", g => g
-            //         .Rule("EmptyObject", r => r
-            //             .Token<OpenObjectToken>("OpenObject")
-            //             .Token<CloseObjectToken>("CloseObject"), 
-            //             (m, x) => new ObjectSyntax(SourceSpan.Empty, new SyntaxNode[0])
-            //         )
-            //         .Rule("NonEmptyObject", r => r
-            //             .Token<OpenObjectToken>("OpenObject")
-            //             .Group("FirstProperty", propertyRuleRef)
-            //             .Group("RestOfProperties", r => r
-            //                 .Token<CommaToken>("Comma")
-            //                 .Group("RestPropertyRef", propertyRuleRef), 
-            //                 (m, x) => new ObjectSyntax(SourceSpan.Empty, new SyntaxNode[0]), 
-            //                 Quantifier.Any)
-            //             .Token<CloseObjectToken>("CloseObject"), 
-            //             (m, x) => new ObjectSyntax(SourceSpan.Empty, new SyntaxNode[0]))
-            //     );
+            propertyRule.Build()
+                .Token<StringToken>("name")
+                .Token<ColonToken>()
+                .Rule(valueRule);
 
-            // return syntax.GetGrammar();
+            var grammar = new Grammar<Token, SyntaxNode>("json-syn", valueRule);
+            return grammar;
         }
 
         public static Preprocessor CreatePreprocessor() =>
@@ -262,7 +206,7 @@ namespace LLang.Demos.Json
 
         public interface IScalarToken
         {
-            object ClrValue { get; }
+            object? ClrValue { get; }
         }
 
         public class WhitespaceToken : Token, IProductOfFactory<WhitespaceToken.Factory>
@@ -283,6 +227,21 @@ namespace LLang.Demos.Json
             public static WhitespaceToken Create(IMatch<char> match, IInputContext<char> context)
             {
                 return new WhitespaceToken(match, context);
+            }
+        }
+
+        public class NullToken : Token, IScalarToken
+        {
+            public NullToken(IMatch<char> match, IInputContext<char> context)
+                : base("NULL", match, context)
+            {
+            }
+
+            public object? ClrValue => null;
+
+            public static NullToken Create(IMatch<char> match, IInputContext<char> context)
+            {
+                return new NullToken(match, context);
             }
         }
 
@@ -624,6 +583,17 @@ namespace LLang.Demos.Json
                     SourceSpan.FromTokens(match, context), 
                     moreProps.Prepend(firstProp));
             }
+
+            public static ObjectSyntax ConstructFromPropertyList(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            {
+                var properties = match.FindRuleByStateId("property-list")?.FindSingleRuleProductOrThrow<SyntaxList>()
+                    ?? throw new Exception("ObjectSyntax: cannot construct from prop list (1)");
+
+                return new ObjectSyntax(
+                    SourceSpan.FromTokens(match, context), 
+                    properties.Cast<PropertySyntax>()
+                );
+            }
         }
 
         public class ArraySyntax : SyntaxNode
@@ -666,6 +636,17 @@ namespace LLang.Demos.Json
                 return new ArraySyntax(
                     SourceSpan.FromTokens(match, context), 
                     moreItems.Prepend(firstItem));
+            }
+
+            public static ArraySyntax ConstructFromItemList(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            {
+                var items = match.FindRuleByStateId("item-list")?.FindSingleRuleProductOrThrow<SyntaxList>()
+                    ?? throw new Exception("ArraySyntax: cannot construct from item list (1)");
+
+                return new ArraySyntax(
+                    SourceSpan.FromTokens(match, context), 
+                    items.Cast<ValueSyntax>()
+                );
             }
         }
 
@@ -785,3 +766,4 @@ namespace LLang.Demos.Json
         }
     }
 }
+ 
