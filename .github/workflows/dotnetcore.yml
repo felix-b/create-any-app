@@ -1,4 +1,4 @@
-name: dotnetcore
+name: Build
 
 on:
   push:
@@ -13,13 +13,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.101
+
     - name: Install dependencies
+      working-directory: l-lang/src
       run: dotnet restore
+
     - name: Build
+      working-directory: l-lang/src
       run: dotnet build --configuration Release --no-restore
+
     - name: Test
+      working-directory: l-lang/src
       run: dotnet test --no-restore --verbosity normal
