@@ -6,9 +6,22 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Trace'">
+    <ConfigurationGroup>Debug</ConfigurationGroup>
+    <DefineConstants>$(DefineConstants);ANALYSIS_TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="PostSharp" Version="6.5.6" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
   </ItemGroup>
 
+  <Choose>
+    <When Condition="$(DefineConstants.Contains('ANALYSIS_TRACE'))">
+      <ItemGroup>
+        <PackageReference Include="PostSharp" Version="6.5.6" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
 </Project>
+ 

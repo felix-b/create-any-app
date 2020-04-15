@@ -1,3 +1,5 @@
+#if ANALYSIS_TRACE 
+
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -65,3 +67,5 @@ namespace LLang.Tracing
         }
     }
 }
+
+#endif
