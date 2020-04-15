@@ -64,7 +64,7 @@ namespace LLang.Demos.Json
         [DataContract]
         [KnownType(typeof(ObjectNode))]
         [KnownType(typeof(ArrayNode))]
-        public class PropertyNode
+        public class PropertyNode : JsonNode
         {
             public PropertyNode(string name, object? value)
             {
