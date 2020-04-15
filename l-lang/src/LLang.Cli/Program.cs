@@ -16,9 +16,9 @@ namespace LLang.Cli
         {
             RealTrace.InitializeConsole(TraceLevel.None, useColors: !Console.IsOutputRedirected);
 
-            if (args.Length != 2)
+            if (args.Length < 2 || args.Length > 3 || (args.Length == 3 && args[2] != "-alt"))
             {
-                Console.WriteLine("Usage: llang <input_json> <output_xml>");
+                Console.WriteLine("Usage: llang <input_json> <output_xml> [-alt]");
                 return 1;
             }
 
@@ -38,7 +38,10 @@ namespace LLang.Cli
 
             try
             {
-                var syntax = ParseJsonSyntax(input);
+                var grammarKind = args.Length == 3 && args[2] == "-alt" 
+                    ? JsonGrammar.SyntaxGrammarKind.RecursiveLists 
+                    : JsonGrammar.SyntaxGrammarKind.NonRecursiveLists;
+                var syntax = ParseJsonSyntax(input, grammarKind);
                 if (syntax == null)
                 {
                     Console.WriteLine("Syntax error in JSON");
@@ -60,11 +63,11 @@ namespace LLang.Cli
             return 0;
         }
 
-        private static SyntaxNode? ParseJsonSyntax(SourceFileReader source)
+        private static SyntaxNode? ParseJsonSyntax(SourceFileReader source, JsonGrammar.SyntaxGrammarKind grammarKind)
         {
             var parser = new SyntaxAnalysis();
             var lexicon = JsonGrammar.CreateLexicon();
-            var syntax = JsonGrammar.CreateSyntax();
+            var syntax = JsonGrammar.CreateSyntax(grammarKind);
             var preprocessor = JsonGrammar.CreatePreprocessor();
 
             // for (int i = 0 ; i < 99 ; i++)

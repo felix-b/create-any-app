@@ -9,6 +9,12 @@ namespace LLang.Demos.Json
 {
     public static class JsonGrammar
     {
+        public enum SyntaxGrammarKind
+        {
+            NonRecursiveLists,
+            RecursiveLists
+        }
+
         public static Grammar<char, Token> CreateLexicon()
         {
             var grammar = new Grammar<char, Token>("json-lex");
@@ -64,7 +70,68 @@ namespace LLang.Demos.Json
             return grammar;
         }
 
-        public static Grammar<Token, SyntaxNode> CreateSyntax()
+        public static Grammar<Token, SyntaxNode> CreateSyntax(SyntaxGrammarKind kind) =>
+            kind switch 
+            {
+                SyntaxGrammarKind.NonRecursiveLists => CreateSyntaxWithNonRecursiveLists(),
+                SyntaxGrammarKind.RecursiveLists => CreateSyntaxWithRecursiveLists(),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind))
+            };
+
+        public static Grammar<Token, SyntaxNode> CreateSyntaxWithNonRecursiveLists()
+        {
+            var valueRule = new Rule<Token, SyntaxNode>("value", ValueSyntax.ConstructAnyValue);
+            var arrayRule = new Rule<Token, SyntaxNode>("array", ArraySyntax.FindInSubRules);
+            var objectRule = new Rule<Token, SyntaxNode>("object", ObjectSyntax.FindInSubRules);
+            var propertyRule = new Rule<Token, SyntaxNode>("property", PropertySyntax.Construct);
+
+            valueRule.Build().Choice(g => g
+                .Rule("number-value", ScalarValueSyntax.Construct, r => r.Token<NumberToken>())
+                .Rule("string-value", ScalarValueSyntax.Construct, r => r.Token<StringToken>())
+                .Rule("true-value", ScalarValueSyntax.Construct, r => r.Token<TrueToken>())
+                .Rule("false-value", ScalarValueSyntax.Construct, r => r.Token<FalseToken>())
+                .Rule(arrayRule)
+                .Rule(objectRule)
+            );
+
+            arrayRule.Build().Choice(g => g
+                .Rule("empty", ArraySyntax.ConstructEmpty, r => r
+                    .Token<OpenArrayToken>()
+                    .Token<CloseArrayToken>())
+                .Rule("non-empty", ArraySyntax.ConstructNonEmpty, r => r
+                    .Token<OpenArrayToken>()
+                    .Rule("first-item", valueRule)
+                    .Group("more-items", 
+                        ValueSyntax.RetrieveFromList, 
+                        r => r.Token<CommaToken>().Rule(valueRule),
+                        Quantifier.Any)
+                    .Token<CloseArrayToken>())
+            );
+
+            objectRule.Build().Choice(g => g
+                .Rule("empty", ObjectSyntax.ConstructEmpty, r => r
+                    .Token<OpenObjectToken>()
+                    .Token<CloseObjectToken>())
+                .Rule("non-empty", ObjectSyntax.ConstructNonEmpty, r => r
+                    .Token<OpenObjectToken>()
+                    .Rule("first-prop", propertyRule)
+                    .Group("more-props", 
+                        PropertySyntax.RetrieveFromList, 
+                        r => r.Token<CommaToken>().Rule(propertyRule),
+                        Quantifier.Any)
+                    .Token<CloseObjectToken>())
+            );
+
+            propertyRule.Build()
+                .Token<StringToken>("name")
+                .Token<ColonToken>()
+                .Rule(valueRule);
+
+            var grammar = new Grammar<Token, SyntaxNode>("json-syn", valueRule);
+            return grammar;
+        }
+
+        public static Grammar<Token, SyntaxNode> CreateSyntaxWithRecursiveLists()
         {
             var valueRule = new Rule<Token, SyntaxNode>("value", ValueSyntax.ConstructAnyValue);
             var arrayRule = new Rule<Token, SyntaxNode>("array", ArraySyntax.FindInSubRules);
@@ -110,13 +177,6 @@ namespace LLang.Demos.Json
                     .Token<OpenArrayToken>()
                     .Rule(itemListRule)
                     .Token<CloseArrayToken>()
-                    // .Token<OpenArrayToken>()
-                    // .Rule("first-item", valueRule)
-                    // .Group("more-items", 
-                    //     ValueSyntax.RetrieveFromList, 
-                    //     r => r.Token<CommaToken>().Rule(valueRule),
-                    //     Quantifier.Any)
-                    // .Token<CloseArrayToken>()
                 )
             );
 
@@ -128,13 +188,6 @@ namespace LLang.Demos.Json
                     .Token<OpenObjectToken>()
                     .Rule(propertyListRule)
                     .Token<CloseObjectToken>()
-                    // .Token<OpenObjectToken>()
-                    // .Rule("first-prop", propertyRule)
-                    // .Group("more-props", 
-                    //     PropertySyntax.RetrieveFromList, 
-                    //     r => r.Token<CommaToken>().Rule(propertyRule),
-                    //     Quantifier.Any)
-                    // .Token<CloseObjectToken>()
                 )
             );
 

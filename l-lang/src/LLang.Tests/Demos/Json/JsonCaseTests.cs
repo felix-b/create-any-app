@@ -16,14 +16,20 @@ namespace LLang.Tests.Demos.Json
     [TestFixture]
     public class JsonCaseTests
     {
-        [TestCase("0.input.json", "0.output.xml")]
-        [TestCase("1.input.json", "1.output.xml")]
-        [TestCase("2.input.json", "2.output.xml")]
-        public void RunJsonTestCase(string inputFileName, string expectedOutputFileName)
+        [TestCase("0.input.json", "0.output.xml", JsonGrammar.SyntaxGrammarKind.NonRecursiveLists)]
+        [TestCase("0.input.json", "0.output.xml", JsonGrammar.SyntaxGrammarKind.RecursiveLists)]
+        [TestCase("1.input.json", "1.output.xml", JsonGrammar.SyntaxGrammarKind.NonRecursiveLists)]
+        [TestCase("1.input.json", "1.output.xml", JsonGrammar.SyntaxGrammarKind.RecursiveLists)]
+        [TestCase("2.input.json", "2.output.xml", JsonGrammar.SyntaxGrammarKind.NonRecursiveLists)]
+        [TestCase("2.input.json", "2.output.xml", JsonGrammar.SyntaxGrammarKind.RecursiveLists)]
+        public void RunJsonTestCase(
+            string inputFileName, 
+            string expectedOutputFileName, 
+            JsonGrammar.SyntaxGrammarKind syntaxGrammarKind)
         {
             var analysis = new SyntaxAnalysis();
             var lexicon = JsonGrammar.CreateLexicon();
-            var syntax = JsonGrammar.CreateSyntax();
+            var syntax = JsonGrammar.CreateSyntax(syntaxGrammarKind);
             var preprocessor = JsonGrammar.CreatePreprocessor();
             var input = CreateInputReader(inputFileName);
 
