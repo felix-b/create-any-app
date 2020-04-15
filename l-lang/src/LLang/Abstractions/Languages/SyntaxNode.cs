@@ -62,6 +62,8 @@ namespace LLang.Abstractions.Languages
             return GetEnumerator();
         }
 
+        public static readonly SyntaxList Empty = new SyntaxList(Array.Empty<SyntaxNode>());
+
         public static SyntaxList Construct(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
         {
             var flatNodes = Flatten(match.MatchedStates.SelectMany(GetSyntaxNodesFromState));
@@ -72,7 +74,7 @@ namespace LLang.Abstractions.Languages
             where T : SyntaxNode
         {
             var flatNodes = Flatten(match.MatchedStates.SelectMany(GetSyntaxNodesFromState));
-            return new SyntaxList(flatNodes.OfType<T>());
+            return new SyntaxList(flatNodes.Where(node => node is T));
         }
 
         public static IEnumerable<SyntaxNode> Flatten(IEnumerable<SyntaxNode> nodes)

@@ -94,19 +94,9 @@ namespace LLang.Demos.Json
                 .Rule(objectRule)
             );
 
-            arrayRule.Build().Choice(g => g
-                .Rule("empty", ArraySyntax.ConstructEmpty, r => r
-                    .Token<OpenArrayToken>()
-                    .Token<CloseArrayToken>())
-                .Rule("non-empty", ArraySyntax.ConstructNonEmpty, r => r
-                    .Token<OpenArrayToken>()
-                    .Rule("first-item", valueRule)
-                    .Group("more-items", 
-                        ValueSyntax.RetrieveFromList, 
-                        r => r.Token<CommaToken>().Rule(valueRule),
-                        Quantifier.Any)
-                    .Token<CloseArrayToken>())
-            );
+            arrayRule.Build().EnclosedSeparatedList<ArraySyntax, ValueSyntax, OpenArrayToken, CommaToken, CloseArrayToken>(
+                itemRule: valueRule, 
+                listProduct: ArraySyntax.ConstructFromSyntaxList);
 
             objectRule.Build().Choice(g => g
                 .Rule("empty", ObjectSyntax.ConstructEmpty, r => r
@@ -647,6 +637,11 @@ namespace LLang.Demos.Json
                     SourceSpan.FromTokens(match, context), 
                     items.Cast<ValueSyntax>()
                 );
+            }
+
+            public static ArraySyntax ConstructFromSyntaxList(SyntaxList list)
+            {
+                return new ArraySyntax(list.Span, list.Cast<ValueSyntax>());
             }
         }
 

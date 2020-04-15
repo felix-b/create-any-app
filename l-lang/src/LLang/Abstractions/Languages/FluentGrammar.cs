@@ -155,6 +155,7 @@ namespace LLang.Abstractions.Languages
             ThisRule.States.Add(new ChoiceRefState<TIn, TOut>(id, subGrammar, quantifier));
             return this;
         }
+
         public Rule<TIn, TOut> ThisRule { get; } 
     }
 
@@ -312,6 +313,43 @@ namespace LLang.Abstractions.Languages
         {
             rule.ThisRule.States.Add(new TokenState(stateId, typeof(TToken), negating: true, quantifier));
             return rule;
+        }
+
+        public static FluentRule<Token, SyntaxNode> EnclosedSeparatedList<TProduct, TItem, TStart, TSeparator, TEnd>(
+            this FluentRule<Token, SyntaxNode> thisRule, 
+            Rule<Token, SyntaxNode> itemRule,
+            Func<SyntaxList, TProduct> listProduct)
+            where TItem : SyntaxNode
+            where TProduct : SyntaxNode
+            where TStart : Token
+            where TSeparator : Token
+            where TEnd : Token
+        {
+            var listId = $"{itemRule.Id}-list";
+
+            thisRule.Choice(id: listId, g => g
+                .Rule($"{listId}-empty", (m, x) => listProduct(SyntaxList.Empty), r => r
+                    .Token<TStart>()
+                    .Token<TEnd>()
+                )
+                .Rule(
+                    $"{listId}-non-empty", 
+                    (m, x) => {
+                        var syntaxList = SyntaxList.ConstructOfType<TItem>(m, x);
+                        return listProduct(syntaxList);
+                    }, 
+                    r => r
+                        .Token<TStart>()
+                        .Rule($"{listId}-first-item", itemRule)
+                        .Group($"{listId}-more-items", 
+                            SyntaxList.Construct, 
+                            r => r.Token<TSeparator>().Rule(itemRule),
+                            Quantifier.Any)
+                        .Token<TEnd>()
+                )
+            );
+
+            return thisRule;
         }
     }
 }
