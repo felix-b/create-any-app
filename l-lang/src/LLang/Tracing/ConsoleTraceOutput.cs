@@ -14,6 +14,20 @@ namespace LLang.Tracing
             _useColors = useColors;
         }
 
+        public void ColorPrintLine(ConsoleColor color, string message)
+        {
+            using var restoreColor = SaveColor();
+            SetColor(color);
+            Console.WriteLine(message);
+        }
+
+        public void UsingColorDo(ConsoleColor color, Action action)
+        {
+            using var restoreColor = SaveColor();
+            SetColor(color);
+            action();
+        }
+
         public void WriteRecord(ref TraceRecord record)
         {
             var (actualLevel, spanIcon) = record.SpanType switch

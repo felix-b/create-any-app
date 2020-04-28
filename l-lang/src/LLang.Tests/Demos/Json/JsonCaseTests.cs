@@ -33,8 +33,10 @@ namespace LLang.Tests.Demos.Json
             var preprocessor = JsonGrammar.CreatePreprocessor();
             var input = CreateInputReader(inputFileName);
 
-            var parsedSyntax = analysis.Run(input, lexicon, syntax, preprocessor);
+            var parsedSyntax = analysis.Run(input, lexicon, syntax, preprocessor, out var diagnostics);
             parsedSyntax.Should().NotBeNull();
+            diagnostics.Count.Should().Be(0);
+            
             var parsedSemantics = JsonSemantics.CreateFromSyntax(parsedSyntax!);
             var output = SerializeSemanticModel(parsedSemantics);
             

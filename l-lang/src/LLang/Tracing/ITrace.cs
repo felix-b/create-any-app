@@ -12,6 +12,22 @@ namespace LLang.Tracing
         void Error(string message, Func<ITraceContextBuilder, ITraceContextBuilder>? context = null);
         ITraceSpan Span(string message, Func<ITraceContextBuilder, ITraceContextBuilder>? context = null);
         TraceLevel Level { get; }
+
+        void Diagnostic(Diagnostic diagnostic)
+        {
+            switch (diagnostic.Description.Level)
+            {
+                case DiagnosticLevel.Error:
+                    Error("Diagnostic", x => x.Diagnostic(diagnostic));
+                    break;
+                case DiagnosticLevel.Warning:
+                    Warning("Diagnostic", x => x.Diagnostic(diagnostic));
+                    break;
+                default:
+                    Debug("Diagnostic", x => x.Diagnostic(diagnostic));
+                    break;
+            }
+        }
     }
 
     public interface ITraceSpan : IDisposable
@@ -34,6 +50,7 @@ namespace LLang.Tracing
         ITraceContextBuilder RuleMatch<TIn, TOut>(RuleMatch<TIn, TOut> match);
         ITraceContextBuilder StateMatch<TIn>(IStateMatch<TIn> match);
         ITraceContextBuilder Result<T>(T value);
+        ITraceContextBuilder Diagnostic(Diagnostic diagnostic);
         ITraceContextBuilder Add(string name, object? value, bool forceIncludeName = false);
         
         ITraceContextBuilder AddValue<T>(string name, T value) where T : struct

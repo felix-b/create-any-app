@@ -28,11 +28,15 @@ namespace LLang.Abstractions
         [Traced]
         public bool Next(IInputContext<TIn> context)
         {
-            while (true)
+            while (true) //TODO: why loop? bug?
             {
                 var result = TryMatchCurrentStateOrAdvanceToNext(context);
                 if (result.HasValue)
                 {
+                    if (!result.Value && _matchedStates.Count > 0)
+                    {
+                        context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), _matchedStates[^1].State.FailureDescription));
+                    }
                     return result.Value;
                 }
             }

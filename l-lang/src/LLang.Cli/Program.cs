@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using LLang.Abstractions.Languages;
 using LLang.Demos.Json;
 using System.Runtime.Serialization;
@@ -7,14 +8,17 @@ using System.Xml;
 using LLang.Tracing;
 using Stopwatch = System.Diagnostics.Stopwatch;
 using LLang.Abstractions;
+using System.Collections.Generic;
 
 namespace LLang.Cli
 {
     class Program
     {
+        private static readonly ConsoleTraceOutput _consoleOutput = new ConsoleTraceOutput(useColors: !Console.IsOutputRedirected);
+
         static int Main(string[] args)
         {
-            RealTrace.InitializeConsole(TraceLevel.None, useColors: !Console.IsOutputRedirected);
+            RealTrace.InitializeOutput(_consoleOutput, TraceLevel.None);
 
             if (args.Length < 2 || args.Length > 3 || (args.Length == 3 && args[2] != "-alt"))
             {
@@ -77,10 +81,12 @@ namespace LLang.Cli
             // }
 
             var watch = Stopwatch.StartNew();
-            var parsedSyntax = parser.Run(source, lexicon, syntax, preprocessor);
+            var parsedSyntax = parser.Run(source, lexicon, syntax, preprocessor, out var diagnostics);
             var elapsed = watch.Elapsed;
 
             Console.WriteLine($"Parsed in {elapsed}");
+            PrintDiagnostics(diagnostics);
+
             return parsedSyntax;
         }
 
@@ -88,6 +94,28 @@ namespace LLang.Cli
         {
             var fileReader = new StreamReader(filePath);
             return new SourceFileReader(RealTrace.SingleInstance, filePath, fileReader);
+        }
+
+        private static void PrintDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        {
+            var errorCount = PrintLevel(DiagnosticLevel.Error, ConsoleColor.Red);
+            var warningCount = PrintLevel(DiagnosticLevel.Warning, ConsoleColor.Yellow);
+
+            _consoleOutput.ColorPrintLine(errorCount > 0 ? ConsoleColor.Red : ConsoleColor. Gray, $"{errorCount,5} Error(s)");
+            _consoleOutput.ColorPrintLine(warningCount > 0 ? ConsoleColor.Yellow : ConsoleColor.Gray, $"{warningCount,5} Warning(s)");
+
+            int PrintLevel(DiagnosticLevel level, ConsoleColor color)
+            {
+                var count = 0;
+                _consoleOutput.UsingColorDo(color, () => {
+                    foreach (var singleDiagnostic in diagnostics!.Where(d => d.Description.Level == level))
+                    {
+                        count++;
+                        Console.WriteLine(singleDiagnostic);
+                    }
+                });
+                return count;
+            }
         }
     }
 }

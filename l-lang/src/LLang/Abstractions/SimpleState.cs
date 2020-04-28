@@ -6,11 +6,16 @@ namespace LLang.Abstractions
     {
         private readonly Func<IInputContext<TIn>, bool> _predicate;
 
-        public SimpleState(string id, Func<IInputContext<TIn>, bool> predicate, Quantifier? quantifier = null)
+        public SimpleState(
+            string id, 
+            Func<IInputContext<TIn>, bool> predicate, 
+            Quantifier? quantifier = null, 
+            BacktrackLabelDescription<TIn>? failureDescription = null)
         {
             _predicate = predicate;
             Id = id;
             Quantifier = quantifier ?? Quantifier.Once;
+            FailureDescription = failureDescription ?? BacktrackLabelDescription<TIn>.Default; 
         }
 
         public bool MatchAhead(IInputContext<TIn> context)
@@ -25,6 +30,7 @@ namespace LLang.Abstractions
 
         public string Id { get; }
         public Quantifier Quantifier { get; }
+        public BacktrackLabelDescription<TIn> FailureDescription { get; }
 
         private class StateMatch : IMatch<TIn>, IStateMatch<TIn>
         {

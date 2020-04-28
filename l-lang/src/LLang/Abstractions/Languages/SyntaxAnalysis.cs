@@ -10,6 +10,7 @@ namespace LLang.Abstractions.Languages
         public SyntaxNode? Run(TokenReader reader, Grammar<Token, SyntaxNode> syntaxRules)
         {
             var syntaxOrNone = Analysis.RunOnce(syntaxRules, reader);
+            reader.CheckForFailures();
             return syntaxOrNone.HasValue ? syntaxOrNone.Value : null;
         }
 
@@ -17,7 +18,8 @@ namespace LLang.Abstractions.Languages
             SourceFileReader reader, 
             Grammar<char, Token> lexicalRules, 
             Grammar<Token, SyntaxNode> syntaxRules,
-            Preprocessor? preprocessor = null)
+            Preprocessor? preprocessor,
+            out IReadOnlyList<Diagnostic> diagnostics)
         {
             using var traceSpan = reader.Trace.Span("SyntaxAnalysis.Run");
             var lexerTraceSpan = reader.Trace.Span("LexicalAnalysis");
@@ -36,11 +38,23 @@ namespace LLang.Abstractions.Languages
             var tokenReader = new TokenReader(reader.Trace, preprocessedTokens);
             var syntaxOrNone = Analysis.RunOnce(syntaxRules, tokenReader);
             var resultSyntax = syntaxOrNone.HasValue ? syntaxOrNone.Value : null;
+            tokenReader.CheckForFailures();
 
             parserTraceSpan.ResultValue(resultSyntax);
             traceSpan.ResultValue("OK");
-
+            
+            diagnostics = ConcatAllDiagnostics(reader, tokenReader);
             return resultSyntax;
+        }
+
+        public static readonly SyntaxDiagnosticDescription UnexpectedTokenError = new SyntaxDiagnosticDescription(
+            code: "SYN001", 
+            DiagnosticLevel.Error, 
+            formatter: diagnostic => $"Unexpected token: '{diagnostic.Input.Span.GetText()}'");
+
+        private static IReadOnlyList<Diagnostic> ConcatAllDiagnostics(SourceFileReader sourceReader, TokenReader tokenReader)
+        {
+            return sourceReader.Diagnostics.Cast<Diagnostic>().Concat(tokenReader.Diagnostics.Cast<Diagnostic>()).ToList();
         }
     }
 

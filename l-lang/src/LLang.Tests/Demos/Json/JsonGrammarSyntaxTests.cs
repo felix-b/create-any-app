@@ -1,4 +1,3 @@
-using System;
 using LLang.Abstractions;
 using LLang.Abstractions.Languages;
 using NUnit.Framework;
@@ -7,6 +6,7 @@ using System.IO;
 using System.Linq;
 using LLang.Demos.Json;
 using LLang.Tracing;
+using LLang.Tests;
 using static LLang.Demos.Json.JsonGrammar;
 
 namespace LLang.Tests.Demos.Json
@@ -402,8 +402,10 @@ namespace LLang.Tests.Demos.Json
                 source, 
                 JsonGrammar.CreateLexicon(), 
                 JsonGrammar.CreateSyntax(syntaxKind), 
-                JsonGrammar.CreatePreprocessor());
+                JsonGrammar.CreatePreprocessor(),
+                out var diagnostics);
 
+            diagnostics.Count.Should().Be(0);
             return syntax;
         }
 
@@ -411,24 +413,5 @@ namespace LLang.Tests.Demos.Json
         {
             return new SourceFileReader(new NoopTrace(), "test.src", new StringReader(sourceText));
         }
-    }
-}
-
-public static class PropDrillingExtensions
-{
-    public static T DrillAs<T>(this object? value, Action<T>? assert = null, string? because = null)
-        where T : class
-    {
-        value.Should().NotBeNull(because);
-        value.Should().BeOfType<T>(because);
-        T drilled = (T)value!;
-        assert?.Invoke(drilled);
-        return drilled;
-    }
-
-    public static T Drill<T>(this T value, Action<T> assert)
-    {
-        assert(value);
-        return value;
     }
 }

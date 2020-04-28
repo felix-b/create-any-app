@@ -6,6 +6,8 @@ namespace LLang.Abstractions
     public interface IInputContext<TIn>
     {
         Marker<TIn> Mark();
+        void EmitDiagnostic(Diagnostic<TIn> diagnostic);
+        void EmitBacktrackLabel(BacktrackLabel<TIn> label);
         ReadOnlyMemory<TIn> GetSlice(
             Marker<TIn> start, 
             Marker<TIn> end, 

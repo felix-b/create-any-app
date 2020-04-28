@@ -11,9 +11,9 @@ namespace LLang.Abstractions
             Value = value;
         }
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object? other)
         {
-            return obj is Marker<TIn> marker && Value == marker.Value;
+            return other is Marker<TIn> otherMarker && this.Value == otherMarker.Value;
         }
 
         public override int GetHashCode()
@@ -39,6 +39,14 @@ namespace LLang.Abstractions
 
         public static int operator - (Marker<TIn> left, Marker<TIn> right) {
             return left.Value - right.Value;
+        }
+
+        public static Marker<TIn> operator - (Marker<TIn> left, int right) {
+            return new Marker<TIn>(left.Value - right);
+        }
+
+        public static Marker<TIn> operator + (Marker<TIn> left, int right) {
+            return new Marker<TIn>(left.Value + right);
         }
     }
 }

@@ -6,11 +6,16 @@ namespace LLang.Abstractions
 {
     public class RuleRefState<TIn, TOut> : IState<TIn>
     {
-        public RuleRefState(string id, Rule<TIn, TOut> ruleRef, Quantifier? quantifier)
+        public RuleRefState(
+            string id, 
+            Rule<TIn, TOut> ruleRef, 
+            Quantifier? quantifier, 
+            BacktrackLabelDescription<TIn>? failureDescription = null)
         {
             Id = id;
             RuleRef = ruleRef;
             Quantifier = quantifier ?? Quantifier.Once;
+            FailureDescription = failureDescription ?? BacktrackLabelDescription<TIn>.Default;
         }
 
         public bool MatchAhead(IInputContext<TIn> context)
@@ -26,6 +31,8 @@ namespace LLang.Abstractions
         public string Id { get; }
         public Rule<TIn, TOut> RuleRef { get; }
         public Quantifier Quantifier { get; }
+        public BacktrackLabelDescription<TIn> FailureDescription { get; }
+
 
         private class StateMatch : IMatch<TIn>, IStateMatch<TIn>, IRuleRefStateMatch<TIn, TOut> 
         {

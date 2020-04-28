@@ -7,6 +7,7 @@ namespace LLang.Abstractions.Languages
 {
     public class TokenReader : IInputReader<Token>
     {
+        private readonly SyntaxDiagnosticList _diagnostics = new SyntaxDiagnosticList();
         private readonly Token[] _tokens;
         private int _position = -1;
 
@@ -14,6 +15,16 @@ namespace LLang.Abstractions.Languages
         {
             _tokens = tokens.ToArray();
             Trace = trace;
+        }
+
+        public void EmitDiagnostic(Diagnostic<Token> diagnostic)
+        {
+            _diagnostics.AddDiagnostic((SyntaxDiagnostic)diagnostic);
+        }
+
+        public void EmitBacktrackLabel(BacktrackLabel<Token> label)
+        {
+            _diagnostics.AddBacktrackLabel(label);
         }
 
         public Marker<Token> Mark()
@@ -33,6 +44,7 @@ namespace LLang.Abstractions.Languages
         public void ResetTo(Marker<Token> marker)
         {
             _position = marker.Value;
+            _diagnostics.ClearBacktrackLabels(untilMarker: marker);
         }
 
         public ReadOnlyMemory<Token> GetSlice(
@@ -49,6 +61,11 @@ namespace LLang.Abstractions.Languages
                 : ReadOnlyMemory<Token>.Empty;
         }
 
+        public void CheckForFailures()
+        {
+            Diagnostics.CheckForFailures(this);
+        }
+
         public override string ToString()
         {
             var input = _position switch {
@@ -58,6 +75,8 @@ namespace LLang.Abstractions.Languages
             };
             return $"input[{_position}:{input}]";
         }
+
+        public IReadOnlyDiagnosticList<Token> Diagnostics => _diagnostics;
 
         public bool IsEndOfInput => _position >= _tokens.Length;
 

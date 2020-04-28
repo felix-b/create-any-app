@@ -163,9 +163,9 @@ namespace LLang.Tracing
 
         public static bool Enabled { get; private set; } = false;
 
-        public static void InitializeConsole(TraceLevel level, bool useColors)
+        public static void InitializeOutput(ITraceOutput output, TraceLevel level)
         {
-            SingleInstance.ReplaceOutput(new ConsoleTraceOutput(useColors));
+            SingleInstance.ReplaceOutput(output);
             SingleInstance.SetLevel(level);
             Enabled = true;
         }
@@ -293,6 +293,13 @@ namespace LLang.Tracing
                 Add("match", match);
                 return this;
             }
+
+            ITraceContextBuilder ITraceContextBuilder.Diagnostic(Diagnostic diagnostic)
+            {
+                Add("diagnostic", diagnostic);
+                return this;
+            }
+
 
             public ITraceContextBuilder Add(string name, object? value, bool forceIncludeName = false)
             {

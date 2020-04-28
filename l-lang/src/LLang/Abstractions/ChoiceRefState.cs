@@ -6,11 +6,16 @@ namespace LLang.Abstractions
 {
     public class ChoiceRefState<TIn, TOut> : IState<TIn>
     {
-        public ChoiceRefState(string id, Choice<TIn, TOut> grammarRef, Quantifier? quantifier)
+        public ChoiceRefState(
+            string id, 
+            Choice<TIn, TOut> grammarRef, 
+            Quantifier? quantifier, 
+            BacktrackLabelDescription<TIn>? failureDescription = null)
         {
             Id = id;
             GrammarRef = grammarRef;
             Quantifier = quantifier ?? Quantifier.Once;
+            FailureDescription = failureDescription ?? BacktrackLabelDescription<TIn>.Default;
         }
 
         public bool MatchAhead(IInputContext<TIn> context)
@@ -26,6 +31,7 @@ namespace LLang.Abstractions
         public string Id { get; }
         public Choice<TIn, TOut> GrammarRef { get; }
         public Quantifier Quantifier { get; }
+        public BacktrackLabelDescription<TIn> FailureDescription { get; }
 
         private class StateMatch : IMatch<TIn>, IStateMatch<TIn>, IChoiceRefStateMatch<TIn, TOut> 
         {

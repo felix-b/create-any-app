@@ -22,7 +22,13 @@ namespace LLang.Abstractions.Languages
                 }
             }
 
+            reader.CheckForFailures();
             reader.Trace.Success($"Lexer scan complete, {tokenCount} token(s).");
         }
+
+        public static readonly LexicalDiagnosticDescription UnexpectedCharacterError = new LexicalDiagnosticDescription(
+            code: "LEX001", 
+            DiagnosticLevel.Error, 
+            formatter: diagnostic => $"Unexpected character: '{diagnostic.Input}'");
     }
 }

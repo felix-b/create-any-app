@@ -7,6 +7,7 @@ namespace LLang.Abstractions.Languages
 {
     public class SourceFileReader : IInputReader<char>
     {
+        private readonly LexicalDiagnosticList _diagnostics = new LexicalDiagnosticList();
         private readonly string _filePath;
         private readonly string _text;
         private int _position = -1;
@@ -16,6 +17,16 @@ namespace LLang.Abstractions.Languages
             _filePath = filePath;
             _text = reader.ReadToEnd();
             Trace = trace;
+        }
+
+        public void EmitDiagnostic(Diagnostic<char> diagnostic)
+        {
+            _diagnostics.AddDiagnostic(diagnostic);
+        }
+
+        public void EmitBacktrackLabel(BacktrackLabel<char> label)
+        {
+            _diagnostics.AddBacktrackLabel(label);
         }
 
         public Location GetLocation(Marker<char> marker)
@@ -54,6 +65,12 @@ namespace LLang.Abstractions.Languages
         public void ResetTo(Marker<char> position)
         {
             _position = position.Value;
+            _diagnostics.ClearBacktrackLabels(untilMarker: position);
+        }
+
+        public void CheckForFailures()
+        {
+            Diagnostics.CheckForFailures(this);
         }
 
         public override string ToString()
@@ -66,6 +83,7 @@ namespace LLang.Abstractions.Languages
             return $"input[{_position}:{input}]";
         }
 
+        public IReadOnlyDiagnosticList<char> Diagnostics => _diagnostics;
         public bool IsEndOfInput => _position >= _text.Length;
         public bool HasInput => _position >= 0 && _position < _text.Length;
         public char Input => HasInput ? _text[_position] : throw new InvalidOperationException("No input available");
