@@ -29,4 +29,10 @@ jobs:
 
     - name: Test
       working-directory: l-lang/src
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test --no-restore --verbosity normal -p:CollectCoverage=true -p:CoverletOutputFormat=opencover -p:CoverletOutput=./TestResults/LLang.Tests.opencover.xml
+
+    - name: Upload Coverage
+      uses: actions/upload-artifact@v1
+      with:
+        name: LLang.Tests.opencover.xml
+        path: l-lang/src/LLang.Tests/TestResults/LLang.Tests.opencover.xml
