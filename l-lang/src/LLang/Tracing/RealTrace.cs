@@ -300,6 +300,11 @@ namespace LLang.Tracing
                 return this;
             }
 
+            ITraceContextBuilder ITraceContextBuilder.BacktrackLabel<TIn>(BacktrackLabel<TIn> label)
+            {
+                Add("label", label);
+                return this;
+            }
 
             public ITraceContextBuilder Add(string name, object? value, bool forceIncludeName = false)
             {

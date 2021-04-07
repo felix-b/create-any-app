@@ -16,8 +16,13 @@ namespace LLang.Abstractions
         {
         }
 
-        public Grammar(string id, IEnumerable<Rule<TIn, TOut>> rules)
-            : base(id, rules)
+        public Grammar(string id, BacktrackLabelDescription<TIn> failure)
+            : base(id, Enumerable.Empty<Rule<TIn, TOut>>(), failure)
+        {
+        }
+
+        public Grammar(string id, IEnumerable<Rule<TIn, TOut>> rules, BacktrackLabelDescription<TIn>? failure = null)
+            : base(id, rules, failure)
         {
         }
 

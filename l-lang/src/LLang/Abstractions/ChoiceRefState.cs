@@ -15,7 +15,7 @@ namespace LLang.Abstractions
             Id = id;
             GrammarRef = grammarRef;
             Quantifier = quantifier ?? Quantifier.Once;
-            FailureDescription = failureDescription ?? BacktrackLabelDescription<TIn>.Default;
+            FailureDescription = failureDescription ?? grammarRef.FailureDescription;
         }
 
         public bool MatchAhead(IInputContext<TIn> context)
@@ -54,7 +54,7 @@ namespace LLang.Abstractions
                 if (initiallyMatched)
                 {
                     _grammarMatches.Add(
-                        grammarRef.TryMatchStart(GetReaderFromContext(context)) ?? throw new Exception("Choice cannot be matched")
+                        grammarRef.TryMatchStart(GetReaderFromContext(context), state.FailureDescription) ?? throw new Exception("Choice cannot be matched")
                     );
                 }
             }
@@ -63,7 +63,7 @@ namespace LLang.Abstractions
             {
                 if (_grammarMatches.Count == 0)
                 {
-                    var firstTimeMatch = GrammarRef.TryMatchStart(GetReaderFromContext(context));
+                    var firstTimeMatch = GrammarRef.TryMatchStart(GetReaderFromContext(context), State.FailureDescription);
                     if (firstTimeMatch != null)
                     {
                         _grammarMatches.Add(firstTimeMatch);
@@ -88,7 +88,7 @@ namespace LLang.Abstractions
 
                 if (State.Quantifier.Allows(TimesMatched + 1))
                 {
-                    var nextGrammarMatch = GrammarRef.TryMatchStart(GetReaderFromContext(context));
+                    var nextGrammarMatch = GrammarRef.TryMatchStart(GetReaderFromContext(context), State.FailureDescription);
                     if (nextGrammarMatch != null)
                     {
                         _grammarMatches.Add(nextGrammarMatch);

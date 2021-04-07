@@ -15,7 +15,7 @@ namespace LLang.Tests.Abstractions
         [Test]
         public void InitiallyEmpty()
         {
-            var list = new DiagnosticList<char>();
+            var list = new DiagnosticList<char>(CreateSourceReader());
             
             list.Count.Should().Be(0);
             list.ToArray().Should().BeEmpty();
@@ -26,7 +26,7 @@ namespace LLang.Tests.Abstractions
         [Test]
         public void CanAddDiagnostics()
         {
-            DiagnosticList<char> list = new DiagnosticList<char>();
+            DiagnosticList<char> list = new DiagnosticList<char>(CreateSourceReader());
             var diagnostic1 = new Diagnostic<char>('X', new Marker<char>(111), TestError);
             var diagnostic2 = new Diagnostic<char>('Y', new Marker<char>(222), TestError);
 
@@ -41,7 +41,7 @@ namespace LLang.Tests.Abstractions
         [Test]
         public void CanAddBacktrackLabels()
         {
-            DiagnosticList<char> list = new DiagnosticList<char>();
+            DiagnosticList<char> list = new DiagnosticList<char>(CreateSourceReader());
             var label1 = new BacktrackLabel<char>(new Marker<char>(111), new BacktrackLabelDescription<char>(TestError));
             var label2 = new BacktrackLabel<char>(new Marker<char>(222), new BacktrackLabelDescription<char>(TestError));
             list.AddBacktrackLabel(label1);
@@ -55,7 +55,7 @@ namespace LLang.Tests.Abstractions
         [Test]
         public void CanDetermineFurthestBacktrackLabel()
         {
-            DiagnosticList<char> list = new DiagnosticList<char>();
+            DiagnosticList<char> list = new DiagnosticList<char>(CreateSourceReader());
             var label1 = new BacktrackLabel<char>(new Marker<char>(111), new BacktrackLabelDescription<char>(TestError));
             var label2 = new BacktrackLabel<char>(new Marker<char>(999), new BacktrackLabelDescription<char>(TestError));
             var label3 = new BacktrackLabel<char>(new Marker<char>(333), new BacktrackLabelDescription<char>(TestError));
@@ -70,7 +70,7 @@ namespace LLang.Tests.Abstractions
         [Test]
         public void CanClearBacktrackLabels()
         {
-            DiagnosticList<char> list = new DiagnosticList<char>();
+            DiagnosticList<char> list = new DiagnosticList<char>(CreateSourceReader());
             var label1 = new BacktrackLabel<char>(new Marker<char>(199), new BacktrackLabelDescription<char>(TestError));
             var label2 = new BacktrackLabel<char>(new Marker<char>(200), new BacktrackLabelDescription<char>(TestError));
             var label3 = new BacktrackLabel<char>(new Marker<char>(999), new BacktrackLabelDescription<char>(TestError));
@@ -89,7 +89,7 @@ namespace LLang.Tests.Abstractions
         [Test]
         public void CanClearAllBacktrackLabels()
         {
-            DiagnosticList<char> list = new DiagnosticList<char>();
+            DiagnosticList<char> list = new DiagnosticList<char>(CreateSourceReader());
             var label1 = new BacktrackLabel<char>(new Marker<char>(199), new BacktrackLabelDescription<char>(TestError));
             var label2 = new BacktrackLabel<char>(new Marker<char>(200), new BacktrackLabelDescription<char>(TestError));
             list.AddBacktrackLabel(label1);
@@ -99,6 +99,11 @@ namespace LLang.Tests.Abstractions
 
             CollectionAssert.AreEqual(new BacktrackLabel<char>?[] { null, null }, list.BacktrackLabels);
             list.FurthestBacktrackLabel.Should().BeNull();
+        }
+
+        private SourceFileReader CreateSourceReader(string sourceText = "")
+        {
+            return new SourceFileReader(new NoopTrace(), "test.src", new StringReader(sourceText));
         }
 
         private static readonly TestErrorDescription TestError = new TestErrorDescription();

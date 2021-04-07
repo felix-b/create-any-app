@@ -7,12 +7,13 @@ namespace LLang.Abstractions.Languages
 {
     public class TokenReader : IInputReader<Token>
     {
-        private readonly SyntaxDiagnosticList _diagnostics = new SyntaxDiagnosticList();
+        private readonly SyntaxDiagnosticList _diagnostics;
         private readonly Token[] _tokens;
         private int _position = -1;
 
         public TokenReader(ITrace trace, IEnumerable<Token> tokens)
         {
+            _diagnostics = new SyntaxDiagnosticList(this);
             _tokens = tokens.ToArray();
             Trace = trace;
         }
@@ -63,7 +64,7 @@ namespace LLang.Abstractions.Languages
 
         public void CheckForFailures()
         {
-            Diagnostics.CheckForFailures(this);
+            Diagnostics.CheckForFailures();
         }
 
         public override string ToString()

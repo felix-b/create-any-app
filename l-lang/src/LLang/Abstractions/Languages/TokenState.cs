@@ -14,7 +14,8 @@ namespace LLang.Abstractions.Languages
                 context => negating
                     ? !tokenType.IsInstanceOfType(context.Input)
                     : tokenType.IsInstanceOfType(context.Input),
-                quantifier)
+                quantifier,
+                new BacktrackLabelDescription<Token>("LL003", d => TokenState.FormatFailure(tokenType.Name, d.Input)))
         {
             TokenType = tokenType;
             Negating = negating;
@@ -22,5 +23,12 @@ namespace LLang.Abstractions.Languages
 
         public Type TokenType { get; }
         public bool Negating { get; }
+
+        private static string FormatFailure(string expectedTokenType, Token? actualInput)
+        {
+            return actualInput != null 
+                ? $"Expected {expectedTokenType}, but found: {actualInput.Span.GetText()}"
+                : $"Expected {expectedTokenType}";
+        }
     }
 }

@@ -85,7 +85,7 @@ namespace LLang.Cli
             var elapsed = watch.Elapsed;
 
             Console.WriteLine($"Parsed in {elapsed}");
-            PrintDiagnostics(diagnostics);
+            PrintDiagnostics(diagnostics, source);
 
             return parsedSyntax;
         }
@@ -96,7 +96,7 @@ namespace LLang.Cli
             return new SourceFileReader(RealTrace.SingleInstance, filePath, fileReader);
         }
 
-        private static void PrintDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private static void PrintDiagnostics(IEnumerable<Diagnostic> diagnostics, SourceFileReader reader)
         {
             var errorCount = PrintLevel(DiagnosticLevel.Error, ConsoleColor.Red);
             var warningCount = PrintLevel(DiagnosticLevel.Warning, ConsoleColor.Yellow);
@@ -111,10 +111,24 @@ namespace LLang.Cli
                     foreach (var singleDiagnostic in diagnostics!.Where(d => d.Description.Level == level))
                     {
                         count++;
-                        Console.WriteLine(singleDiagnostic);
+                        var location = FormatLocation(singleDiagnostic);
+                        Console.WriteLine($"{location}: {singleDiagnostic}");
                     }
                 });
                 return count;
+            }
+            
+            string FormatLocation(Diagnostic diagnostic)
+            {
+                var marker = diagnostic switch 
+                {
+                    Diagnostic<char> c => c.Marker,
+                    Diagnostic<Token> t => t.Input != null ? t.Input.Span.Start : new Marker<char>(-1),
+                    _ => throw new ArgumentException("Unexpected type of diagnostic", nameof(diagnostic))
+                };
+
+                var location = reader.GetLocation(marker);
+                return $"{location.FilePath} ({location.Line}:{location.Column})";
             }
         }
     }

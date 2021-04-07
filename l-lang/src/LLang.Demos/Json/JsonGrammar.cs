@@ -17,7 +17,7 @@ namespace LLang.Demos.Json
 
         public static Grammar<char, Token> CreateLexicon()
         {
-            var grammar = new Grammar<char, Token>("json-lex");
+            var grammar = new Grammar<char, Token>("json-lex", new BacktrackLabelDescription<char>("JS001", _ => "Lexical error"));
             grammar.Build()
                 .Rule(WhitespaceToken.Create, r => r.CharRange(" \r\n\t", Quantifier.Any))
                 .Rule(OpenObjectToken.Create, r => r.Char('{'))

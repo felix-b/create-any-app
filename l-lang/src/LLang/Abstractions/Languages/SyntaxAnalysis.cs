@@ -48,7 +48,7 @@ namespace LLang.Abstractions.Languages
         }
 
         public static readonly SyntaxDiagnosticDescription UnexpectedTokenError = new SyntaxDiagnosticDescription(
-            code: "SYN001", 
+            code: "LL002", 
             DiagnosticLevel.Error, 
             formatter: diagnostic => $"Unexpected token: '{diagnostic.Input.Span.GetText()}'");
 

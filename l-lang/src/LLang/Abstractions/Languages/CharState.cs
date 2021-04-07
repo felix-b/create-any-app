@@ -32,7 +32,7 @@ namespace LLang.Abstractions.Languages
                     ? context.Input != c
                     : context.Input == c, 
                 quantifier,
-                new BacktrackLabelDescription<char>("LEX001", d => $"Unexpected character: '{d.Input}'"))
+                new BacktrackLabelDescription<char>("LL001", d => $"Unexpected character: '{d.Input}', expected '{c}'"))
         {
             Char = c;
             Negating = negating;

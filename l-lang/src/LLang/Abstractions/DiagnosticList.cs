@@ -7,9 +7,15 @@ namespace LLang.Abstractions
 {
     public class DiagnosticList<TIn> : IReadOnlyDiagnosticList<TIn>
     {
+        private readonly IInputContext<TIn> _context;
         private readonly List<Diagnostic<TIn>> _diagnostics = new List<Diagnostic<TIn>>();
         private readonly List<BacktrackLabel<TIn>?> _backtrackLabels = new List<BacktrackLabel<TIn>?>();
         private BacktrackLabel<TIn>? _furthestBacktrackLabel = null;
+
+        public DiagnosticList(IInputContext<TIn> context)
+        {
+            _context = context;
+        }
 
         IEnumerator<Diagnostic<TIn>> IEnumerable<Diagnostic<TIn>>.GetEnumerator()
         {
@@ -41,6 +47,8 @@ namespace LLang.Abstractions
             {
                 _furthestBacktrackLabel = label;
             }
+
+            _context.Trace.Debug("BKTRAK", x => x.BacktrackLabel(label));
         }
 
         public void ClearBacktrackLabels(Marker<TIn> untilMarker)
@@ -59,13 +67,14 @@ namespace LLang.Abstractions
             }
         }
 
-        public void CheckForFailures(IInputContext<TIn> context)
+        public void CheckForFailures()
         {
             if (_furthestBacktrackLabel != null)
             {
-                var input = context.GetSlice(_furthestBacktrackLabel.Marker, _furthestBacktrackLabel.Marker + 1).Span[0]; 
+                var inputSlice = _context.GetSlice(_furthestBacktrackLabel.Marker, _furthestBacktrackLabel.Marker + 1);
+                var input = !inputSlice.IsEmpty ? inputSlice.Span[0] : default; //TODO: why the input slice can ever be empty?
                 var failureDiagnostic = new Diagnostic<TIn>(
-                    input,
+                    input!, //TODO: get rid of '!'
                     _furthestBacktrackLabel.Marker,
                     _furthestBacktrackLabel.Description.Diagnostic);
 
@@ -73,7 +82,7 @@ namespace LLang.Abstractions
                 _furthestBacktrackLabel = null;
                 _backtrackLabels.Clear();
 
-                context.Trace.Diagnostic(failureDiagnostic);
+                _context.Trace.Diagnostic(failureDiagnostic);
             }
         }
 
@@ -86,7 +95,7 @@ namespace LLang.Abstractions
 
     public interface IReadOnlyDiagnosticList<TIn> : IReadOnlyList<Diagnostic<TIn>>
     {
-        void CheckForFailures(IInputContext<TIn> context);
+        void CheckForFailures();
         bool HasErrors { get; }
         IReadOnlyList<BacktrackLabel<TIn>?> BacktrackLabels { get; }
         BacktrackLabel<TIn>? FurthestBacktrackLabel { get; }

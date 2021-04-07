@@ -28,14 +28,15 @@ namespace LLang.Abstractions
         [Traced]
         public bool Next(IInputContext<TIn> context)
         {
-            while (true) //TODO: why loop? bug?
+            while (true)
             {
                 var result = TryMatchCurrentStateOrAdvanceToNext(context);
                 if (result.HasValue)
                 {
-                    if (!result.Value && _matchedStates.Count > 0)
+                    if (!result.Value && _matchedStates.Count > 0 && _matchedStates.Count < Rule.States.Count)
                     {
-                        context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), _matchedStates[^1].State.FailureDescription));
+                        var unmatchedState = Rule.States[_matchedStates.Count];
+                        context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), unmatchedState.FailureDescription));
                     }
                     return result.Value;
                 }
@@ -45,19 +46,22 @@ namespace LLang.Abstractions
         [Traced]
         public bool ValidateMatch(IInputContext<TIn> context)
         {
-            EndMarker = context.Mark();
+            EndMarker = /*context.Mark();*/ Marker.Max(context.Mark(), StartMarker); //TODO: why does EndMarker < StartMarker ever happen?
 
             var totalStateCount =  Rule.States.Count;
             var matchedStateCount = _matchedStates.Count;
 
-            if (matchedStateCount > 0 && !_matchedStates[matchedStateCount - 1].ValidateMatch(context))
+            if (matchedStateCount > 0 && !_matchedStates[^1].ValidateMatch(context))
             {
+                context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), _matchedStates[^1].State.FailureDescription));
                 return false;
             }
+
             for (int i = matchedStateCount ; i < totalStateCount; i++)
             {
                 if (!Rule.States[i].Quantifier.IsMetBy(times: 0))
                 {
+                    context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), Rule.States[i].FailureDescription));
                     return false;
                 }
             }

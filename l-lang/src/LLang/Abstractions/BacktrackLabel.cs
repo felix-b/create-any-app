@@ -10,6 +10,11 @@ namespace LLang.Abstractions
             Description = description;
         }
 
+        public override string ToString()
+        {
+            return $"label[{this.Description.Diagnostic.Code} @ {Marker.Value}]";
+        }
+
         public BacktrackLabelDescription<TIn> Description { get; }
         public Marker<TIn> Marker { get; }
     }
@@ -28,7 +33,7 @@ namespace LLang.Abstractions
         public DiagnosticDescription<TIn> Diagnostic { get; }
 
         public static readonly BacktrackLabelDescription<TIn> Default = new BacktrackLabelDescription<TIn>(
-            code: "UNK000",
+            code: "LL000",
             formatter: diag => $"Error near '{diag.Input}'");
     }
 }

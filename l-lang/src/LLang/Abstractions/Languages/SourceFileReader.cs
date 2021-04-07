@@ -7,13 +7,14 @@ namespace LLang.Abstractions.Languages
 {
     public class SourceFileReader : IInputReader<char>
     {
-        private readonly LexicalDiagnosticList _diagnostics = new LexicalDiagnosticList();
+        private readonly LexicalDiagnosticList _diagnostics;
         private readonly string _filePath;
         private readonly string _text;
         private int _position = -1;
 
         public SourceFileReader(ITrace trace, string filePath, TextReader reader)
         {
+            _diagnostics = new LexicalDiagnosticList(this);
             _filePath = filePath;
             _text = reader.ReadToEnd();
             Trace = trace;
@@ -31,7 +32,7 @@ namespace LLang.Abstractions.Languages
 
         public Location GetLocation(Marker<char> marker)
         {
-            return new Location(_filePath, 1, marker.Value);
+            return new Location(_filePath, 1, marker.Value + 1);
         }
 
         public ReadOnlyMemory<char> GetSlice(
@@ -70,7 +71,7 @@ namespace LLang.Abstractions.Languages
 
         public void CheckForFailures()
         {
-            Diagnostics.CheckForFailures(this);
+            Diagnostics.CheckForFailures();
         }
 
         public override string ToString()

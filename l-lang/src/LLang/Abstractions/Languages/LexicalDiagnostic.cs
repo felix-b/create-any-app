@@ -21,5 +21,8 @@ namespace LLang.Abstractions.Languages
 
     public class LexicalDiagnosticList : DiagnosticList<char>
     {
+        public LexicalDiagnosticList(IInputContext<char> context) : base(context)
+        {
+        }
     }
 }

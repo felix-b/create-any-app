@@ -27,7 +27,7 @@ namespace LLang.Abstractions.Languages
         }
 
         public static readonly LexicalDiagnosticDescription UnexpectedCharacterError = new LexicalDiagnosticDescription(
-            code: "LEX001", 
+            code: "LL001", 
             DiagnosticLevel.Error, 
             formatter: diagnostic => $"Unexpected character: '{diagnostic.Input}'");
     }

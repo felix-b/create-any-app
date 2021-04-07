@@ -61,9 +61,20 @@ namespace LLang.Abstractions.Languages
         public static SourceSpan FromTokens(IMatch<Token> match, IInputContext<Token> context)
         {
             var tokenSlice = context.GetSlice(match.StartMarker, match.EndMarker);
-            var firstSpan = tokenSlice.Span[0].Span;
-            var lastSpan = tokenSlice.Span[^1].Span;
-            return new SourceSpan(firstSpan, lastSpan);
+
+            if (tokenSlice.Length > 0)
+            {
+                var firstSpan = tokenSlice.Span[0].Span;
+                var lastSpan = tokenSlice.Span[^1].Span;
+                return new SourceSpan(firstSpan, lastSpan);
+            }
+
+            return Empty;
+        }
+
+        public static SourceSpan FromChar(Marker<char> marker)
+        {
+            return new SourceSpan(marker, marker + 1);
         }
 
         // public static Span<TIn> Include(IReadOnlyList<SyntaxNode> nodes) 

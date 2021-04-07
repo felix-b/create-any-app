@@ -49,4 +49,17 @@ namespace LLang.Abstractions
             return new Marker<TIn>(left.Value + right);
         }
     }
+
+    public static class Marker
+    {
+        public static Marker<TIn> Max<TIn>(Marker<TIn> a, Marker<TIn> b)
+        {
+            return b > a ? b : a;
+        }
+
+        public static Marker<TIn> Min<TIn>(Marker<TIn> a, Marker<TIn> b)
+        {
+            return b < a ? b : a;
+        }
+    }
 }

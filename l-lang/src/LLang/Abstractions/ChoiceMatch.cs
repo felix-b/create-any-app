@@ -9,15 +9,18 @@ namespace LLang.Abstractions
         private readonly IInputReader<TIn> _reader;
         private readonly List<RuleMatch<TIn, TOut>?> _matchingRules;
         private readonly List<RuleMatch<TIn, TOut>> _matchedRules;
+        private readonly BacktrackLabelDescription<TIn> _failureDescription;
 
         private ChoiceMatch(
             Choice<TIn, TOut> choice, 
             IInputReader<TIn> reader,
-            List<RuleMatch<TIn, TOut>?> matchingRules)
+            List<RuleMatch<TIn, TOut>?> matchingRules,
+            BacktrackLabelDescription<TIn> failureDescription)
         {
             _reader = reader;
             _matchingRules = matchingRules;
             _matchedRules = new List<RuleMatch<TIn, TOut>>(capacity: choice.Rules.Count);
+            _failureDescription = failureDescription;
 
             Choice = choice;
             StartMarker = reader.Mark();
@@ -50,10 +53,17 @@ namespace LLang.Abstractions
                 }
             }   
 
-            if (!anyRuleMatched && _matchedRules.Count > 0)
+            if (!anyRuleMatched)
             {
-                MatchedRule = FindBestMatchedRule();
-                RevertInputToMatchedRuleEnd();
+                if (_matchedRules.Count > 0)
+                {
+                    MatchedRule = FindBestMatchedRule();
+                    RevertInputToMatchedRuleEnd();
+                }
+                else 
+                {
+                    context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), _failureDescription));
+                }
             }
 
             return anyRuleMatched;
@@ -125,7 +135,8 @@ namespace LLang.Abstractions
 
         public static ChoiceMatch<TIn, TOut>? TryMatchStart(
             Choice<TIn, TOut> choice, 
-            IInputReader<TIn> reader)
+            IInputReader<TIn> reader,
+            BacktrackLabelDescription<TIn> failureDescription)
         {
             List<RuleMatch<TIn, TOut>?>? matchingRules = null;
 
@@ -142,9 +153,13 @@ namespace LLang.Abstractions
                 }
             }
 
-            return matchingRules != null 
-                ? new ChoiceMatch<TIn, TOut>(choice, reader, matchingRules)
-                : null;
+            if (matchingRules != null)
+            {
+                return new ChoiceMatch<TIn, TOut>(choice, reader, matchingRules, failureDescription);
+            }
+
+            reader.EmitBacktrackLabel(new BacktrackLabel<TIn>(reader.Mark(), failureDescription));
+            return null;
         }
     }
 }

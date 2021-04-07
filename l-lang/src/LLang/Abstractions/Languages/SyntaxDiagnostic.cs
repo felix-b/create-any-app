@@ -23,5 +23,8 @@ namespace LLang.Abstractions.Languages
 
     public class SyntaxDiagnosticList : DiagnosticList<Token>
     {
+        public SyntaxDiagnosticList(IInputContext<Token> context) : base(context)
+        {
+        }
     }
 }

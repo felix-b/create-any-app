@@ -51,6 +51,7 @@ namespace LLang.Tracing
         ITraceContextBuilder StateMatch<TIn>(IStateMatch<TIn> match);
         ITraceContextBuilder Result<T>(T value);
         ITraceContextBuilder Diagnostic(Diagnostic diagnostic);
+        ITraceContextBuilder BacktrackLabel<TIn>(BacktrackLabel<TIn> label);
         ITraceContextBuilder Add(string name, object? value, bool forceIncludeName = false);
         
         ITraceContextBuilder AddValue<T>(string name, T value) where T : struct

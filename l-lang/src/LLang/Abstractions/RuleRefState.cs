@@ -15,7 +15,7 @@ namespace LLang.Abstractions
             Id = id;
             RuleRef = ruleRef;
             Quantifier = quantifier ?? Quantifier.Once;
-            FailureDescription = failureDescription ?? BacktrackLabelDescription<TIn>.Default;
+            FailureDescription = failureDescription ?? new BacktrackLabelDescription<TIn>("LL003", d => $"Expected {RuleRef.Id}, but found: '{d.Input}'");
         }
 
         public bool MatchAhead(IInputContext<TIn> context)
