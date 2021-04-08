@@ -113,6 +113,34 @@ namespace LLang.Tests.Abstractions.Languages
         }
 
         [Test]
+        public void PartialNestedRuleMatch()
+        {
+            var innerRule = new Rule<char, Token>("B", new IState<char>[] {
+                new CharState('B'),
+            }, match => new AToken(match));
+            
+            var outerRule = new Rule<char, Token>("ABC", new IState<char>[] {
+                new CharState('A'),
+                new RuleRefState<char, Token>("refB", innerRule, Quantifier.Once),
+                new CharState('C'), 
+            }, match => new AToken(match));
+            
+            var grammar = new Grammar<char, Token>(new[] {
+                outerRule
+            });
+            
+            var lexer = new LexicalAnalysis();
+            var reader = CreateSourceReader("AxC");
+            var tokens = lexer.RunToEnd(grammar, reader).ToArray();
+            var diagnostics = reader.Diagnostics;
+
+            tokens.Length.Should().Be(0);
+            diagnostics.Count.Should().Be(1);
+            diagnostics[0].Marker.Value.Should().Be(1);
+            diagnostics[0].ToString().Should().Be("Expected B, but found: 'x'");
+        }
+
+        [Test]
         public void PartialChoiceMatch()
         {
             var itemChoice = new Choice<char, Token>(

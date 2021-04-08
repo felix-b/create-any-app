@@ -35,8 +35,8 @@ namespace LLang.Abstractions
                 {
                     if (!result.Value && _matchedStates.Count > 0 && _matchedStates.Count < Rule.States.Count)
                     {
-                        var unmatchedState = Rule.States[_matchedStates.Count];
-                        context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), unmatchedState.FailureDescription));
+                        var unmatchedState = _matchedStates[^1];// Rule.States[_matchedStates.Count];
+                        context.EmitBacktrackLabel(new BacktrackLabel<TIn>(context.Mark(), unmatchedState.State.FailureDescription));
                     }
                     return result.Value;
                 }
