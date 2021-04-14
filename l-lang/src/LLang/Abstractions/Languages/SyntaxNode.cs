@@ -34,7 +34,7 @@ namespace LLang.Abstractions.Languages
 
         public Token Token { get; }
 
-        public static TokenSyntax Create(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+        public static TokenSyntax Create(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
         {
             if (match.MatchedStates.Count != 1)
             {
@@ -64,13 +64,13 @@ namespace LLang.Abstractions.Languages
 
         public static readonly SyntaxList Empty = new SyntaxList(Array.Empty<SyntaxNode>());
 
-        public static SyntaxList Construct(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+        public static SyntaxList Construct(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
         {
             var flatNodes = Flatten(match.MatchedStates.SelectMany(GetSyntaxNodesFromState));
             return new SyntaxList(flatNodes);
         }
 
-        public static SyntaxList ConstructOfType<T>(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+        public static SyntaxList ConstructOfType<T>(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             where T : SyntaxNode
         {
             var flatNodes = Flatten(match.MatchedStates.SelectMany(GetSyntaxNodesFromState));

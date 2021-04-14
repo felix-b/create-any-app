@@ -4,7 +4,7 @@ namespace LLang.Abstractions
 {
     public interface IProductFactory<TIn, TOut>
     {
-        TOut Create(RuleMatch<TIn, TOut> match, IInputContext<TIn> context);
+        TOut Create(IRuleMatch<TIn, TOut> match, IInputContext<TIn> context);
     }
 
     public interface IProductOfFactory
@@ -15,5 +15,5 @@ namespace LLang.Abstractions
     {
     }
 
-    public delegate TOut CreateRuleProduct<TIn, TOut>(RuleMatch<TIn, TOut> match, IInputContext<TIn> context);
+    public delegate TOut CreateRuleProduct<TIn, TOut>(IRuleMatch<TIn, TOut> match, IInputContext<TIn> context);
 }

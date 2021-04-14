@@ -15,7 +15,7 @@ namespace LLang.Abstractions.Languages
                     ? !tokenType.IsInstanceOfType(context.Input)
                     : tokenType.IsInstanceOfType(context.Input),
                 quantifier,
-                new BacktrackLabelDescription<Token>("LL003", d => TokenState.FormatFailure(tokenType.Name, d.Input)))
+                new BacktrackLabelDescription<Token>($"LL003[token={id}]", d => TokenState.FormatFailure(tokenType.Name, d.Input)))
         {
             TokenType = tokenType;
             Negating = negating;

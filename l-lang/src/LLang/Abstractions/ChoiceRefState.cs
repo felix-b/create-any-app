@@ -35,7 +35,7 @@ namespace LLang.Abstractions
 
         private class StateMatch : IMatch<TIn>, IStateMatch<TIn>, IChoiceRefStateMatch<TIn, TOut> 
         {
-            private readonly List<ChoiceMatch<TIn, TOut>> _grammarMatches;
+            private readonly List<IChoiceMatch<TIn, TOut>> _grammarMatches;
 
             public StateMatch(
                 ChoiceRefState<TIn, TOut> state, 
@@ -49,7 +49,7 @@ namespace LLang.Abstractions
                 GrammarRef = grammarRef;
                 Input = context.Input;
 
-                _grammarMatches = new List<ChoiceMatch<TIn, TOut>>();
+                _grammarMatches = new List<IChoiceMatch<TIn, TOut>>();
 
                 if (initiallyMatched)
                 {
@@ -114,7 +114,7 @@ namespace LLang.Abstractions
             public TProduct FindSingleRuleProductOrThrow<TProduct>() 
                 where TProduct : class, TOut
             {
-                var rule = GrammarMatches.SingleOrDefault().MatchedRule;
+                var rule = GrammarMatches.SingleOrDefault()?.MatchedRule;
                 return rule != null && rule.Product.HasValue
                     ? (rule.Product.Value as TProduct 
                         ?? throw new Exception($"GrammarRefState[{State.Id}]: single rule product is not {typeof(TProduct).Name}"))
@@ -123,7 +123,7 @@ namespace LLang.Abstractions
 
             public IState<TIn> State { get; }
             public Choice<TIn, TOut> GrammarRef { get; }
-            public IReadOnlyList<ChoiceMatch<TIn, TOut>> GrammarMatches => _grammarMatches;
+            public IReadOnlyList<IChoiceMatch<TIn, TOut>> GrammarMatches => _grammarMatches;
             public int TimesMatched { get; private set; }
             public Marker<TIn> StartMarker { get; }
             public Marker<TIn> EndMarker { get; private set; }
@@ -134,5 +134,5 @@ namespace LLang.Abstractions
                 return (context as IInputReader<TIn>) ?? throw new Exception("IInputContext was expected to also be IInputReader");
             }
         }
-    }
+    } 
 }

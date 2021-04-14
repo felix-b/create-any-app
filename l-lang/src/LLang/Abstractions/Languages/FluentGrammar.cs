@@ -37,7 +37,7 @@ namespace LLang.Abstractions.Languages
 
         public FluentGrammar<TIn, TOut> Rule(
             out Rule<TIn, TOut> rule,
-            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Func<IRuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
             Action<FluentRule<TIn, TOut>>? build = null)
         {
             return Rule(
@@ -48,7 +48,7 @@ namespace LLang.Abstractions.Languages
         }
 
         public FluentGrammar<TIn, TOut> Rule(
-            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Func<IRuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
             Action<FluentRule<TIn, TOut>>? build = null)
         {
             return Rule(
@@ -60,7 +60,7 @@ namespace LLang.Abstractions.Languages
 
         public FluentGrammar<TIn, TOut> Rule(
             string id, 
-            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Func<IRuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
             Action<FluentRule<TIn, TOut>>? build = null)
         {
             return Rule(id, out _, createProduct, build);
@@ -69,7 +69,7 @@ namespace LLang.Abstractions.Languages
         public FluentGrammar<TIn, TOut> Rule(
             string id, 
             out Rule<TIn, TOut> rule,
-            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
+            Func<IRuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> createProduct,
             Action<FluentRule<TIn, TOut>>? build = null)
         {
             rule = new Rule<TIn, TOut>(id, createProduct);
@@ -104,7 +104,7 @@ namespace LLang.Abstractions.Languages
 
         public FluentRule<TIn, TOut> Group(
             string id,
-            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct, 
+            Func<IRuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct, 
             Action<FluentRule<TIn, TOut>> build,
             Quantifier? quantifier = null)
         {
@@ -115,7 +115,7 @@ namespace LLang.Abstractions.Languages
         }
 
         public FluentRule<TIn, TOut> Group(
-            Func<RuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct, 
+            Func<IRuleMatch<TIn, TOut>, IInputContext<TIn>, TOut> groupProduct, 
             Action<FluentRule<TIn, TOut>> build,
             Quantifier? quantifier = null)
         {
@@ -209,7 +209,7 @@ namespace LLang.Abstractions.Languages
         public static FluentRule<char, Token> CharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
         {
             var id = GetIdFromCharRanges(chars);
-            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: false, quantifier, GetRangesFromString(chars)));
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: false, quantifier, LexerUtility.CharRangesFromString(chars)));
             return rule;
         }
 
@@ -231,7 +231,7 @@ namespace LLang.Abstractions.Languages
         public static FluentRule<char, Token> NotCharRange(this FluentRule<char, Token> rule, string chars, Quantifier? quantifier = null)
         {
             var id = GetIdFromCharRanges(chars, negating: true);
-            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: true, quantifier, GetRangesFromString(chars)));
+            rule.ThisRule.States.Add(CharRangeState.Create(id, negating: true, quantifier, LexerUtility.CharRangesFromString(chars)));
             return rule;
         }
 
@@ -262,29 +262,6 @@ namespace LLang.Abstractions.Languages
         {
             var negationPrefix = negating ? "!" : string.Empty;
             return negationPrefix + string.Join(string.Empty, chars.Select(c => c.EscapeIfControl()));
-        }
-
-        private static ValueTuple<char, char>[] GetRangesFromString(string s)
-        {
-            var sortedChars = s.Distinct().OrderBy(c => c).ToArray();
-
-            ValueTuple<char, char>[] ranges = sortedChars.Length > 0 && AreConsecutiveChars(sortedChars) 
-                ? new ValueTuple<char, char>[] { (sortedChars[0], sortedChars[^1]) }
-                : s.Select(c => new ValueTuple<char, char>(c, c)).ToArray();
-
-            return ranges;
-
-            static bool AreConsecutiveChars(char[] chars)
-            {
-                for (int i = 1 ; i < chars.Length ; i++)
-                {
-                    if (chars[i] != chars[i-1] + 1)
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
         }
     }
     public static class FluentRuleSyntaxExtensions

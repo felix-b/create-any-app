@@ -65,7 +65,7 @@ namespace LLang.Abstractions
             {
                 EndMarker = context.Mark();
                 var valid = State.Quantifier.IsMetBy(TimesMatched);
-                
+                    
                 return valid;
             }
 

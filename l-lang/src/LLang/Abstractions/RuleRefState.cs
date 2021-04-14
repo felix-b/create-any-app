@@ -15,7 +15,7 @@ namespace LLang.Abstractions
             Id = id;
             RuleRef = ruleRef;
             Quantifier = quantifier ?? Quantifier.Once;
-            FailureDescription = failureDescription ?? new BacktrackLabelDescription<TIn>("LL003", d => $"Expected {RuleRef.Id}, but found: '{d.Input}'");
+            FailureDescription = failureDescription ?? new BacktrackLabelDescription<TIn>($"LL003[rule={ruleRef.Id}]", d => $"Expected {RuleRef.Id}, but found: '{d.Input}'");
         }
 
         public bool MatchAhead(IInputContext<TIn> context)
@@ -36,7 +36,7 @@ namespace LLang.Abstractions
 
         private class StateMatch : IMatch<TIn>, IStateMatch<TIn>, IRuleRefStateMatch<TIn, TOut> 
         {
-            private readonly List<RuleMatch<TIn, TOut>> _ruleMatches;
+            private readonly List<IRuleMatch<TIn, TOut>> _ruleMatches;
 
             public StateMatch(
                 RuleRefState<TIn, TOut> state, 
@@ -51,7 +51,7 @@ namespace LLang.Abstractions
                 RuleRef = ruleRef;
                 Input = context.Input;
 
-                _ruleMatches = new List<RuleMatch<TIn, TOut>>();
+                _ruleMatches = new List<IRuleMatch<TIn, TOut>>();
 
                 if (initiallyMatched)
                 {
@@ -123,7 +123,7 @@ namespace LLang.Abstractions
 
             public IState<TIn> State { get; }
             public Rule<TIn, TOut> RuleRef { get; }
-            public IReadOnlyList<RuleMatch<TIn, TOut>> RuleMatches => _ruleMatches;
+            public IReadOnlyList<IRuleMatch<TIn, TOut>> RuleMatches => _ruleMatches;
             public int TimesMatched { get; private set; }
             public Marker<TIn> StartMarker { get; }
             public Marker<TIn> EndMarker { get; private set; }

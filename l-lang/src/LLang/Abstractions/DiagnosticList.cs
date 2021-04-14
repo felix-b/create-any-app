@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LLang.Abstractions
 {
@@ -78,6 +79,22 @@ namespace LLang.Abstractions
                     _furthestBacktrackLabel.Marker,
                     _furthestBacktrackLabel.Description.Diagnostic);
 
+                var b = new StringBuilder();
+                _backtrackLabels.ForEach(l => {
+                    if (l != null)
+                    {
+                        var d = new Diagnostic<TIn>(
+                            input!, //TODO: get rid of '!'
+                            l.Marker,
+                            l.Description.Diagnostic);
+
+                        b.Append(l.Description.Diagnostic.Code);
+                        b.Append(':');
+                        b.AppendLine(l.Description.Diagnostic.FormatMessage(d));
+                    }
+                });
+                Console.WriteLine(b);
+                
                 _diagnostics.Add(failureDiagnostic);
                 _furthestBacktrackLabel = null;
                 _backtrackLabels.Clear();

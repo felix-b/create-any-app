@@ -228,7 +228,7 @@ namespace LLang.Tracing
                 return this;
             }
 
-            ITraceContextBuilder ITraceContextBuilder.ChoiceMatch<TIn, TOut>(ChoiceMatch<TIn, TOut> match)
+            ITraceContextBuilder ITraceContextBuilder.ChoiceMatch<TIn, TOut>(IChoiceMatch<TIn, TOut> match)
             {
                 Add("match", match);
                 return this;
@@ -270,7 +270,7 @@ namespace LLang.Tracing
                 return this;
             }
 
-            ITraceContextBuilder ITraceContextBuilder.RuleMatch<TIn, TOut>(RuleMatch<TIn, TOut> match)
+            ITraceContextBuilder ITraceContextBuilder.RuleMatch<TIn, TOut>(IRuleMatch<TIn, TOut> match)
             {
                 Add("match", match);
                 return this;

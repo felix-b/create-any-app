@@ -10,7 +10,7 @@
                 return OptionalProduct.WithoutValue<TOut>();
             }
 
-            var match = grammar.TryMatchStart(input);
+            var match = grammar.TryMatchStart(input, grammar.FailureDescription);
             if (match == null)
             {
                 return OptionalProduct.WithoutValue<TOut>();

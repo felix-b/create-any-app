@@ -7,4 +7,9 @@ namespace LLang.Abstractions
         Marker<TIn> StartMarker { get; }
         Marker<TIn> EndMarker { get; }
     }
+
+    public interface IMatch<TIn, TOut> : IMatch<TIn>
+    {
+        OptionalProduct<TOut> Product { get; }
+    }
 }

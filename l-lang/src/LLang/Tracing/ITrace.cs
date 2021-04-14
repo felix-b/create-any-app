@@ -45,9 +45,9 @@ namespace LLang.Tracing
         ITraceContextBuilder Product<TOut>(OptionalProduct<TOut> product);
         ITraceContextBuilder Product(object? product);
         ITraceContextBuilder ChoiceRefStateMatch<TIn, TOut>(IChoiceRefStateMatch<TIn, TOut> match);
-        ITraceContextBuilder ChoiceMatch<TIn, TOut>(ChoiceMatch<TIn, TOut> match);
+        ITraceContextBuilder ChoiceMatch<TIn, TOut>(IChoiceMatch<TIn, TOut> match);
         ITraceContextBuilder RuleRefStateMatch<TIn, TOut>(IRuleRefStateMatch<TIn, TOut> match);
-        ITraceContextBuilder RuleMatch<TIn, TOut>(RuleMatch<TIn, TOut> match);
+        ITraceContextBuilder RuleMatch<TIn, TOut>(IRuleMatch<TIn, TOut> match);
         ITraceContextBuilder StateMatch<TIn>(IStateMatch<TIn> match);
         ITraceContextBuilder Result<T>(T value);
         ITraceContextBuilder Diagnostic(Diagnostic diagnostic);

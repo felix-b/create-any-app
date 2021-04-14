@@ -13,13 +13,13 @@ namespace LLang.Abstractions
     {
         TProduct FindSingleRuleProductOrThrow<TProduct>() where TProduct : class, TOut;
         Rule<TIn, TOut> RuleRef { get; }
-        IReadOnlyList<RuleMatch<TIn, TOut>> RuleMatches { get; }
+        IReadOnlyList<IRuleMatch<TIn, TOut>> RuleMatches { get; }
     }
 
     public interface IChoiceRefStateMatch<TIn, TOut> : IStateMatch<TIn>
     {
         TProduct FindSingleRuleProductOrThrow<TProduct>() where TProduct : class, TOut;
         Choice<TIn, TOut> GrammarRef { get; }
-        IReadOnlyList<ChoiceMatch<TIn, TOut>> GrammarMatches { get; }
+        IReadOnlyList<IChoiceMatch<TIn, TOut>> GrammarMatches { get; }
     }
 }

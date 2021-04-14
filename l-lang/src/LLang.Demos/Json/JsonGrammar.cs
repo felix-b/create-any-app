@@ -198,7 +198,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new WhitespaceToken(match, context);
                 }
@@ -239,7 +239,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new NumberToken(match, context);
                 }
@@ -262,7 +262,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new TrueToken(match, context);
                 }
@@ -285,7 +285,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new FalseToken(match, context);
                 }
@@ -299,7 +299,7 @@ namespace LLang.Demos.Json
 
         public class StringToken : Token, IScalarToken, IProductOfFactory<StringToken.Factory>
         {
-            public StringToken(IEnumerable<IStringContentToken> contentTokens, RuleMatch<char, Token> match, IInputContext<char> context)
+            public StringToken(IEnumerable<IStringContentToken> contentTokens, IRuleMatch<char, Token> match, IInputContext<char> context)
                 : base("STR", match, context)
             {
                 ContentTokens = contentTokens.ToArray();
@@ -313,13 +313,13 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return StringToken.Create(match, context);
                 }
             }
 
-            public static StringToken Create(RuleMatch<char, Token> match, IInputContext<char> context)
+            public static StringToken Create(IRuleMatch<char, Token> match, IInputContext<char> context)
             {
                 var choice = match.FindChoiceByStateId("value") 
                     ?? throw new Exception("StringToken: cannot construct (1)");
@@ -350,7 +350,7 @@ namespace LLang.Demos.Json
             public string UnescapedText => Span.GetText();
             public Token AsToken => this;
 
-            public static NonEscapedTextToken Create(RuleMatch<char, Token> match, IInputContext<char> context)
+            public static NonEscapedTextToken Create(IRuleMatch<char, Token> match, IInputContext<char> context)
             {
                 return new NonEscapedTextToken(match, context);
             }
@@ -371,7 +371,7 @@ namespace LLang.Demos.Json
             public string UnescapedText => new string(EscapedChar, 1);
             public Token AsToken => this;
 
-            public static EscapeSequenceToken CreateFromChar(RuleMatch<char, Token> match, IInputContext<char> context)
+            public static EscapeSequenceToken CreateFromChar(IRuleMatch<char, Token> match, IInputContext<char> context)
             {
                 var text = context.GetSlice(match.StartMarker, match.EndMarker).ToString();
                 if (text.Length == 2 && text[0] == '\\')
@@ -384,7 +384,7 @@ namespace LLang.Demos.Json
                 throw new Exception("EscapedCharToken: cannot construct (1)");
             }
 
-            public static EscapeSequenceToken CreateFromHex(RuleMatch<char, Token> match, IInputContext<char> context)
+            public static EscapeSequenceToken CreateFromHex(IRuleMatch<char, Token> match, IInputContext<char> context)
             {
                 var text = context.GetSlice(match.StartMarker, match.EndMarker).ToString();
                 if (text.Length == 6 && int.TryParse(text[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var charCode))
@@ -405,7 +405,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new OpenObjectToken(match, context);
                 }
@@ -426,7 +426,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new CloseObjectToken(match, context);
                 }
@@ -447,7 +447,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new OpenArrayToken(match, context);
                 }
@@ -468,7 +468,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new CloseArrayToken(match, context);
                 }
@@ -489,7 +489,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new ColonToken(match, context);
                 }
@@ -510,7 +510,7 @@ namespace LLang.Demos.Json
 
             public class Factory : IProductFactory<char, Token>
             {
-                public Token Create(RuleMatch<char, Token> match, IInputContext<char> context)
+                public Token Create(IRuleMatch<char, Token> match, IInputContext<char> context)
                 {
                     return new CommaToken(match, context);
                 }
@@ -532,7 +532,7 @@ namespace LLang.Demos.Json
 
             public IReadOnlyList<PropertySyntax> Properties { get; }
 
-            public static ObjectSyntax FindInSubRules(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ObjectSyntax FindInSubRules(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var choiceMatch = match.MatchedStates.SingleOrDefault() as IChoiceRefStateMatch<Token, SyntaxNode>
                     ?? throw new Exception("ObjectSyntax: cannot find in sub-rules (1)");
@@ -540,14 +540,14 @@ namespace LLang.Demos.Json
                 return choiceMatch.FindSingleRuleProductOrThrow<ObjectSyntax>();
             }
 
-            public static ObjectSyntax ConstructEmpty(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ObjectSyntax ConstructEmpty(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 return new ObjectSyntax(
                     SourceSpan.FromTokens(match, context), 
                     Array.Empty<PropertySyntax>());
             }
 
-            public static ObjectSyntax ConstructNonEmpty(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ObjectSyntax ConstructNonEmpty(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var firstProp = match.FindRuleByStateId("first-prop")?.FindSingleRuleProductOrThrow<PropertySyntax>()
                     ?? throw new Exception("ObjectSyntax: cannot construct non-empty (1)");
@@ -564,7 +564,7 @@ namespace LLang.Demos.Json
                     moreProps.Prepend(firstProp));
             }
 
-            public static ObjectSyntax ConstructFromPropertyList(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ObjectSyntax ConstructFromPropertyList(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var properties = match.FindRuleByStateId("property-list")?.FindSingleRuleProductOrThrow<SyntaxList>()
                     ?? throw new Exception("ObjectSyntax: cannot construct from prop list (1)");
@@ -591,7 +591,7 @@ namespace LLang.Demos.Json
 
             public IReadOnlyList<ValueSyntax> Items { get; }
 
-            public static ArraySyntax FindInSubRules(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ArraySyntax FindInSubRules(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var choiceMatch = match.MatchedStates.SingleOrDefault() as IChoiceRefStateMatch<Token, SyntaxNode>
                     ?? throw new Exception("ArraySyntax: cannot find in sub-rules (1)");
@@ -599,14 +599,14 @@ namespace LLang.Demos.Json
                 return choiceMatch.FindSingleRuleProductOrThrow<ArraySyntax>();
             }
 
-            public static ArraySyntax ConstructEmpty(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ArraySyntax ConstructEmpty(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 return new ArraySyntax(
                     SourceSpan.FromTokens(match, context), 
                     Array.Empty<ValueSyntax>());
             }
 
-            public static ArraySyntax ConstructNonEmpty(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ArraySyntax ConstructNonEmpty(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var firstItem = match.FindRuleByStateId("first-item")?.FindSingleRuleProductOrThrow<ValueSyntax>()
                     ?? throw new Exception("ArraySyntax: cannot construct non-empty (1)");
@@ -623,7 +623,7 @@ namespace LLang.Demos.Json
                     moreItems.Prepend(firstItem));
             }
 
-            public static ArraySyntax ConstructFromItemList(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ArraySyntax ConstructFromItemList(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var items = match.FindRuleByStateId("item-list")?.FindSingleRuleProductOrThrow<SyntaxList>()
                     ?? throw new Exception("ArraySyntax: cannot construct from item list (1)");
@@ -654,7 +654,7 @@ namespace LLang.Demos.Json
             public StringToken NameToken { get; }
             public ValueSyntax ValueSyntax { get; }
 
-            public static PropertySyntax Construct(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static PropertySyntax Construct(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var nameToken = match.FindStateByIdOrThrow<TokenState>("name").Input as StringToken
                     ?? throw new Exception("PropertySyntax: cannot construct (1)");
@@ -668,7 +668,7 @@ namespace LLang.Demos.Json
                     valueSyntax);
             }
 
-            public static PropertySyntax RetrieveFromList(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static PropertySyntax RetrieveFromList(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var syntax = match.FindRuleById("property")?.FindSingleRuleProductOrThrow<PropertySyntax>()
                     ?? throw new Exception("PropertySyntax: cannot retrieve from list (1)");
@@ -684,7 +684,7 @@ namespace LLang.Demos.Json
             {
             }
 
-            public static ValueSyntax ConstructAnyValue(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ValueSyntax ConstructAnyValue(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var span = SourceSpan.FromTokens(match, context);
                 var choiceMatch = match.MatchedStates.SingleOrDefault() as IChoiceRefStateMatch<Token, SyntaxNode>
@@ -703,7 +703,7 @@ namespace LLang.Demos.Json
                 return concreteSyntax;
             }
 
-            public static ValueSyntax RetrieveFromList(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ValueSyntax RetrieveFromList(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var syntax = match.FindRuleById("value")?.FindSingleRuleProductOrThrow<ValueSyntax>()
                     ?? throw new Exception("PropertySyntax: cannot retrieve from list (1)");
@@ -722,7 +722,7 @@ namespace LLang.Demos.Json
 
             public IScalarToken ScalarToken { get; }
 
-            public static ScalarValueSyntax Construct(RuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
+            public static ScalarValueSyntax Construct(IRuleMatch<Token, SyntaxNode> match, IInputContext<Token> context)
             {
                 var scalarToken = match.MatchedStates.SingleOrDefault()?.Input as IScalarToken
                     ?? throw new Exception("ScalarValueSyntax: cannot construct (1)");

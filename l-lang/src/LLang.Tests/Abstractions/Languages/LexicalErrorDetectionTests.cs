@@ -10,7 +10,7 @@ using LLang.Tracing;
 namespace LLang.Tests.Abstractions.Languages
 {
     [TestFixture]
-    public class LexicalErrorTests
+    public class LexicalErrorDetectionTests
     {
 
         // public static readonly ErrorTestCase[] ErrorTestCases = new[] {

@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace LLang.Cli
 {
-    class Program
+    static class Program
     {
         private static readonly ConsoleTraceOutput _consoleOutput = new ConsoleTraceOutput(useColors: !Console.IsOutputRedirected);
 
@@ -22,7 +22,7 @@ namespace LLang.Cli
 
             if (args.Length < 2 || args.Length > 3 || (args.Length == 3 && args[2] != "-alt"))
             {
-                Console.WriteLine("Usage: llang <input_json> <output_xml> [-alt]");
+                Console.WriteLine("Usage: llang <input_json> <output_xml> [--alt]");
                 return 1;
             }
 
@@ -42,7 +42,7 @@ namespace LLang.Cli
 
             try
             {
-                var grammarKind = args.Length == 3 && args[2] == "-alt" 
+                var grammarKind = args.Length == 3 && args[2] == "--alt" 
                     ? JsonGrammar.SyntaxGrammarKind.RecursiveLists 
                     : JsonGrammar.SyntaxGrammarKind.NonRecursiveLists;
                 var syntax = ParseJsonSyntax(input, grammarKind);
@@ -112,7 +112,7 @@ namespace LLang.Cli
                     {
                         count++;
                         var location = FormatLocation(singleDiagnostic);
-                        Console.WriteLine($"{location}: {singleDiagnostic}");
+                        Console.WriteLine($"{location}: ({singleDiagnostic.Description.Code}) {singleDiagnostic}");
                     }
                 });
                 return count;
